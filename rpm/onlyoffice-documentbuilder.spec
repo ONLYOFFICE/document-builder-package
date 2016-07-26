@@ -6,8 +6,7 @@ License: Commercial
 Group: Applications/File
 URL: http://onlyoffice.com/
 Vendor: ONLYOFFICE (document builder)
-Packager: ONLYOFFICE (document builder) <support@onlyoffice.com>
-Requires: 
+Packager: ONLYOFFICE (document builder) <support@onlyoffice.com> 
 BuildArch: x86_64
 AutoReq: no
 AutoProv: no
