@@ -2,5 +2,5 @@
 
 LD_LIBRARY_PATH=./
 export LD_LIBRARY_PATH
-cd /opt/onlyoffice/documentcreator/
+cd /opt/onlyoffice/documentbuilder/
 exec ./docbuilder_linux64 $@
