@@ -35,9 +35,8 @@ CP := cp -rf -t
 CD := cd
 
 CORE_PATH := ../core
-BIN_PATH := $(CORE_PATH)/build/bin
 
-SRC += $(BIN_PATH)/docbuilder/docbuilder_linux64
+SRC += $(CORE_PATH)/build/linux_builder/builder/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
