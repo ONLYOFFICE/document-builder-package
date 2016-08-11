@@ -7,7 +7,7 @@ Group: Applications/File
 URL: http://onlyoffice.com/
 Vendor: ONLYOFFICE (document builder)
 Packager: ONLYOFFICE (document builder) <support@onlyoffice.com>
-Requires: glibc, libcurl, libxml2
+Requires: glibc, libcurl, libxml2, dejavu-lgc-sans-fonts, dejavu-lgc-sans-mono-fonts, dejavu-lgc-serif-fonts, dejavu-sans-fonts, dejavu-sans-mono-fonts, dejavu-serif-fonts, libreoffice-opensymbol-fonts
 BuildArch: x86_64
 AutoReq: no
 AutoProv: no
