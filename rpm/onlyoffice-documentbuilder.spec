@@ -44,6 +44,7 @@ rm -rf "$RPM_BUILD_ROOT"
 %pre
 
 %post
+chmod -R 777 /opt/onlyoffice/documentbuilder
 ln -sf /usr/lib64/libcurl.so.4 /opt/onlyoffice/documentbuilder/libcurl-gnutls.so.4
 
 %preun
