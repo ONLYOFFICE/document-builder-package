@@ -1,0 +1,6 @@
+#!/bin/sh
+
+DIR=/opt/onlyoffice/documentbuilder
+LD_LIBRARY_PATH=$DIR
+export LD_LIBRARY_PATH
+exec $DIR/docbuilder_linux64 $@

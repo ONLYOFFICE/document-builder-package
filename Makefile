@@ -35,15 +35,14 @@ CP := cp -rf -t
 CD := cd
 
 CORE_PATH := ../core
-BIN_PATH := $(CORE_PATH)/build/bin
 
-SRC += $(BIN_PATH)/docbuilder/docbuilder_linux64
+SRC += $(CORE_PATH)/build/linux_builder/builder/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
 .PHONY: all clean deb deploy
 
-all: deb
+all: deb rpm
 
 rpm: $(RPM)
 
@@ -108,4 +107,4 @@ $(DEB_REPO_DATA): $(DEB)
 		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/repo \
 		--acl public-read --delete
 
-deploy: $(DEB_REPO_DATA)
+deploy: $(DEB_REPO_DATA) $(RPM_REPO_DATA)
