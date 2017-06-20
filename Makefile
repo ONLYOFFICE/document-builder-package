@@ -13,10 +13,14 @@ RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 
 DEB_REPO := $(PWD)/repo
-DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
-
 RPM_REPO := $(PWD)/repo-rpm
-RPM_REPO_DATA := $(RPM_REPO)/repodata
+
+UNAME_P := $(shell uname -p)
+#make deploy target only for x64
+ifeq ($(UNAME_P),x86_64)
+  DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
+  RPM_REPO_DATA := $(RPM_REPO)/repodata
+endif
 
 RPM_REPO_OS_NAME := centos
 RPM_REPO_OS_VER := 7
@@ -36,7 +40,7 @@ CD := cd
 
 CORE_PATH := ../core
 
-SRC += $(CORE_PATH)/build/linux_builder/builder/*
+SRC += ../$(PRODUCT_NAME)-$(PRODUCT_VERSION)/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
