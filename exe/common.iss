@@ -8,8 +8,10 @@
 
 #ifndef COMPILE_FROM_IDE
 #define sAppVersion         '{{PRODUCT_VERSION}}.{{BUILD_NUMBER}}'
+#define sAppProdVer         '{{PRODUCT_VERSION}}'
 #else
 #define sAppVersion         '0.0.0.0'
+#define sAppProdVer         '0.0.0'
 #endif
 
 #define sAppVerShort        Copy(sAppVersion, 0, 3)
@@ -129,7 +131,7 @@ begin
 end;
 
 [Files]
-Source: ..\..\documentbuilder-{#sAppVerShort}-{#sAppArch}\*;    DestDir: {app};
+Source: ..\..\documentbuilder-{#sAppProdVer}\*;    DestDir: {app};
 
 
 Source: res\license.htm;                                  DestDir: {app};
