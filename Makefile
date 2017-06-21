@@ -5,8 +5,15 @@ BUILD_NUMBER ?= 0
 PACKAGE_NAME := $(COMPANY_NAME)-$(PRODUCT_NAME)
 PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 
-RPM_ARCH := x86_64
-DEB_ARCH := amd64
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),x86_64)
+	RPM_ARCH := x86_64
+	DEB_ARCH := amd64
+endif
+ifneq ($(filter %86,$(UNAME_M)),)
+        RPM_ARCH := i386
+        DEB_ARCH := i386
+endif
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
 DEB_BUILD_DIR := $(PWD)/deb
@@ -17,12 +24,8 @@ DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 DEB_REPO := $(PWD)/repo
 RPM_REPO := $(PWD)/repo-rpm
 
-UNAME_P := $(shell uname -p)
-#make deploy target only for x64
-ifeq ($(UNAME_P),x86_64)
-  DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
-  RPM_REPO_DATA := $(RPM_REPO)/repodata
-endif
+DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
+RPM_REPO_DATA := $(RPM_REPO)/repodata
 
 RPM_REPO_OS_NAME := centos
 RPM_REPO_OS_VER := 7
@@ -71,11 +74,13 @@ $(PRODUCT_NAME):
 $(RPM):	$(PRODUCT_NAME)
 	sed 's/{{PRODUCT_VERSION}}/'$(PRODUCT_VERSION)'/'  -i rpm/$(PACKAGE_NAME).spec
 	sed 's/{{BUILD_NUMBER}}/'${BUILD_NUMBER}'/'  -i rpm/$(PACKAGE_NAME).spec
+	sed 's/{{BUILD_ARCH}}/'${RPM_ARCH}'/'  -i rpm/$(PACKAGE_NAME).spec
 
 	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
 
 $(DEB): $(PRODUCT_NAME)
 	sed 's/{{PACKAGE_VERSION}}/'$(PACKAGE_VERSION)'/'  -i deb/$(PACKAGE_NAME)/debian/changelog
+	sed "s/{{BUILD_ARCH}}/"$(DEB_ARCH)"/"  -i deb/$(PACKAGE_NAME)/debian/control
 
 	$(CD) deb/$(PACKAGE_NAME) && dpkg-buildpackage -b -uc -us
 
@@ -88,12 +93,12 @@ $(RPM_REPO_DATA): $(RPM)
 
 	aws s3 sync \
 		$(RPM_REPO) \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/ \
+		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/ \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/  \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/ \
+		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/  \
+		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(RPM_ARCH)/ \
 		--acl public-read --delete
 
 $(DEB_REPO_DATA): $(DEB)
@@ -105,12 +110,12 @@ $(DEB_REPO_DATA): $(DEB)
 
 	aws s3 sync \
 		$(DEB_REPO) \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/repo \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/repo \
 		--acl public-read --delete
 
 deploy: $(DEB_REPO_DATA) $(RPM_REPO_DATA)
