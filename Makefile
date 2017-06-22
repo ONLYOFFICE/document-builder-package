@@ -75,7 +75,7 @@ SRC += ../$(PRODUCT_NAME)-$(PRODUCT_VERSION)/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
-VCREDIST := res/vcredist_$(WIN_ARCH).exe
+VCREDIST := exe/res/vcredist_$(WIN_ARCH).exe
 
 .PHONY: all clean deb rpm exe deploy
 
