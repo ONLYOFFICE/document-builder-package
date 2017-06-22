@@ -46,6 +46,10 @@ PrivilegesRequired        = admin
 SetupMutex                = ASC
 AppMutex                  = TEAMLAB
 
+#ifndef COMPILE_FROM_IDE
+SignTool=byparam $p
+#endif
+
 [CustomMessages]
 ;======================================================================================================
 Launch =Launch %1
