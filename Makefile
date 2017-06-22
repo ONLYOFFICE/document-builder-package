@@ -67,6 +67,7 @@ MKDIR := mkdir -p
 RM := rm -rfv
 CP := cp -rf -t
 CD := cd
+CURL := curl -L -o
 
 CORE_PATH := ../core
 
