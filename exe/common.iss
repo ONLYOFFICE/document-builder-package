@@ -135,7 +135,7 @@ begin
 end;
 
 [Files]
-Source: ..\..\documentbuilder-{#sAppProdVer}\*;    DestDir: {app};
+Source: ..\..\documentbuilder-{#sAppProdVer}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
 
 
 Source: res\license.htm;                                  DestDir: {app};
