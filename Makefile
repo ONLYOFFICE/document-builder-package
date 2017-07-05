@@ -120,7 +120,11 @@ $(DEB): $(PRODUCT_NAME)
 $(EXE): $(VCREDIST)
 	sed "s/"{{PRODUCT_VERSION}}"/"$(PRODUCT_VERSION)"/" -i exe/common.iss
 	sed "s/"{{BUILD_NUMBER}}"/"$(BUILD_NUMBER)"/" -i exe/common.iss
+	ifeq ($(WIN_ARCH),x64)
 	cd exe && iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f" $(PACKAGE_NAME)-$(WIN_ARCH).iss
+	else
+	cd exe && iscc /Qp /S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f" $(PACKAGE_NAME)-$(WIN_ARCH).iss
+	endif
 
 $(VCREDIST):
 	$(CURL) $(VCREDIST) http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_$(WIN_ARCH).exe
