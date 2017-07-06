@@ -173,12 +173,12 @@ $(EXE_REPO_DATA): $(EXE)
 
 	aws s3 sync \
 		$(EXE_REPO) \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/ \
+		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PRODUCT_VERSION).$(BUILD_NUMBER)/$(WIN_ARCH)/ \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/  \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/ \
+		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PRODUCT_VERSION).$(BUILD_NUMBER)/$(WIN_ARCH)/  \
+		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(WIN_ARCH)/ \
 		--acl public-read --delete
 
 deploy: $(DEPLOY)
