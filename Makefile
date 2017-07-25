@@ -81,7 +81,7 @@ SRC += ../$(PRODUCT_NAME)-$(PRODUCT_VERSION)/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
-VCREDIST := exe/res/vcredist_$(WIN_ARCH).exe
+ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
 
 .PHONY: all clean deb rpm exe deploy
 
@@ -123,13 +123,13 @@ $(DEB): $(PRODUCT_NAME)
 
 	$(CD) deb/$(PACKAGE_NAME) && dpkg-buildpackage -b -uc -us
 
-$(EXE): $(VCREDIST)
+$(EXE): $(ISXDL)
 	sed "s/"{{PRODUCT_VERSION}}"/"$(PRODUCT_VERSION)"/" -i exe/common.iss
 	sed "s/"{{BUILD_NUMBER}}"/"$(BUILD_NUMBER)"/" -i exe/common.iss
 	cd exe && $(ISCC) $(PACKAGE_NAME)-$(WIN_ARCH).iss
 
-$(VCREDIST):
-	$(CURL) $(VCREDIST) http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_$(WIN_ARCH).exe
+$(ISXDL):
+	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
 
 $(RPM_REPO_DATA): $(RPM)
 	$(RM) $(RPM_REPO)

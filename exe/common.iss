@@ -45,10 +45,14 @@ PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
 SetupMutex                = ASC
 AppMutex                  = TEAMLAB
+DEPCompatible             = no
 
 #ifndef COMPILE_FROM_IDE
 SignTool=byparam $p
 #endif
+
+[Languages]
+Name: "en"; MessagesFile: "compiler:Default.isl"
 
 [CustomMessages]
 ;======================================================================================================
@@ -97,43 +101,6 @@ WarningWrongArchitecture =You are trying to install the %1-bit application versi
 
 RunSamples =Generate samples documents
 
-[Code]
-procedure installVCRedist(FileName, LabelCaption: String);
-var
-  Params:    String;
-  ErrorCode: Integer;
-begin
-  if Length(LabelCaption) > 0 then WizardForm.StatusLabel.Caption := LabelCaption;
-
-  Params := '/quiet';
-
-  ShellExec('', FileName, Params, '', SW_SHOW, ewWaitUntilTerminated, ErrorCode);
-
-  WizardForm.StatusLabel.Caption := SetupMessage(msgStatusExtractFiles);
-end;
-
-function GetHKLM: Integer;
-begin
-  if IsWin64 then
-    Result := HKLM64
-  else
-    Result := HKEY_LOCAL_MACHINE;
-end;
-
-function checkVCRedist: Boolean;
-var
-  isExists: Boolean;
-begin
-  isExists := False;
-
-  if not IsWin64 or Is64BitInstallMode then
-    isExists := RegKeyExists(GetHKLM(), 'SOFTWARE\Microsoft\DevDiv\vc\Servicing\12.0\RuntimeMinimum')
-  else
-    isExists := RegKeyExists(GetHKLM(), 'SOFTWARE\Wow6432Node\Microsoft\DevDiv\vc\Servicing\12.0\RuntimeMinimum');
-
-  Result := isExists;
-end;
-
 [Files]
 Source: ..\..\documentbuilder-{#sAppProdVer}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
 
@@ -150,3 +117,37 @@ Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 
 [Run]
 Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; Flags: postinstall nowait;
+
+; shared code for installing the products
+#include "scripts\products.iss"
+; helper functions
+#include "scripts\products\stringversion.iss"
+#include "scripts\products\winversion.iss"
+#include "scripts\products\fileversion.iss"
+
+#include "scripts\products\msiproduct.iss"
+#include "scripts\products\vcredist2010sp1.iss"
+#include "scripts\products\vcredist2013.iss"
+
+[Code]
+function InitializeSetup(): Boolean;
+begin
+  // initialize windows version
+  initwinversion();
+  
+  vcredist2010();
+  vcredist2013();
+
+  Result := true;
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := true;
+  if WizardSilent() = false then
+  begin
+    case CurPageID of
+      wpReady: Result := DownloadDependency();
+    end;
+  end;
+end;

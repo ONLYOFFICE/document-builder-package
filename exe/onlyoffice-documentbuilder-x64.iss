@@ -7,8 +7,3 @@ ArchitecturesAllowed    =x64
 ArchitecturesInstallIn64BitMode=x64
 ;ShowUndisplayableLanguages = true
 ;UsePreviousLanguage=no
-
-
-[Files]
-Source: res\vcredist_x64.exe;       DestDir: {app}\; Flags: deleteafterinstall; \
-    AfterInstall: installVCRedist(ExpandConstant('{app}\vcredist_x64.exe'), ExpandConstant('{cm:InstallAdditionalComponents}')); Check: not checkVCRedist;
