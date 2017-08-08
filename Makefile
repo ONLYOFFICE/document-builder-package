@@ -115,6 +115,10 @@ $(RPM):	$(PRODUCT_NAME)
 	sed 's/{{BUILD_NUMBER}}/'${BUILD_NUMBER}'/'  -i rpm/$(PACKAGE_NAME).spec
 	sed 's/{{BUILD_ARCH}}/'${RPM_ARCH}'/'  -i rpm/$(PACKAGE_NAME).spec
 
+ifeq ($(RPM_ARCH),i386)
+	sed 's/lib64/lib/'  -i rpm/$(PACKAGE_NAME).spec
+endif
+
 	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
 
 $(DEB): $(PRODUCT_NAME)
