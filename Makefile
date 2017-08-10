@@ -3,19 +3,42 @@ PRODUCT_NAME ?= documentbuilder
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
 PACKAGE_NAME := $(COMPANY_NAME)-$(PRODUCT_NAME)
-PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
 	RPM_ARCH := x86_64
 	DEB_ARCH := amd64
 	WIN_ARCH := x64
+	ARCH_SUFFIX := x64
 endif
 ifneq ($(filter %86,$(UNAME_M)),)
 	RPM_ARCH := i386
 	DEB_ARCH := i386
 	WIN_ARCH := x86
+	ARCH_SUFFIX := x86
 endif
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM := win
+	EXEC_EXT := .exe
+	SHELL_EXT := .bat
+	SHARED_EXT := .dll
+	ARCH_EXT := .zip
+	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		PLATFORM := linux
+		SHARED_EXT := .so*
+		SHELL_EXT := .sh
+		ARCH_EXT := .tar.gz
+		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
+	endif
+endif
+
+ARCH_REPO := $(PWD)/repo-arch
+ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
+ARCH_PACKAGE_DIR := ..
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
 DEB_BUILD_DIR := $(PWD)/deb
@@ -31,7 +54,7 @@ DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
 RPM_REPO_DATA := $(RPM_REPO)/repodata
 
 EXE_REPO := repo-exe
-EXE_REPO_DATA := $(EXE_REPO)/$(PACKAGE_NAME)-$(PRODUCT_VERSION).$(BUILD_NUMBER)-$(WIN_ARCH).exe
+EXE_REPO_DATA := $(EXE_REPO)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
 RPM_REPO_OS_NAME := centos
 RPM_REPO_OS_VER := 7
@@ -43,25 +66,22 @@ DEB_REPO_DIR := $(DEB_REPO_OS_NAME)/$(DEB_REPO_OS_VER)
 
 EXE_REPO_DIR = windows
 
-RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
-DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
-EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PRODUCT_VERSION).$(BUILD_NUMBER)-$(WIN_ARCH).exe
+ARCH_REPO_DIR := linux
 
 ifeq ($(OS),Windows_NT)
-	PLATFORM := win
-	EXEC_EXT := .exe
-	SHELL_EXT := .bat
-	SHARED_EXT := .dll
-	DEPLOY := $(EXE_REPO_DATA)
+  ARCH_REPO_DIR := $(EXE_REPO_DIR)
+	DEPLOY := $(EXE_REPO_DATA) $(ARCH_REPO_DATA)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
-		PLATFORM := linux
-		SHARED_EXT := .so*
-		SHELL_EXT := .sh
-		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA)
+		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(ARCH_REPO_DATA)
 	endif
 endif
+
+ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
+RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
+DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
+EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
 MKDIR := mkdir -p
 RM := rm -rfv
@@ -85,7 +105,9 @@ ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
 
 .PHONY: all clean deb rpm exe deploy
 
-all: deb rpm
+all: deb rpm arch
+
+arch: $(ARCHIVE)
 
 rpm: $(RPM)
 
@@ -99,6 +121,8 @@ clean:
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(VCREDIST)\
+		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
+		$(ARCH_REPO)\
 		$(DEB_REPO)\
 		$(RPM_REPO)\
 		$(EXE_REPO)\
@@ -177,12 +201,34 @@ $(EXE_REPO_DATA): $(EXE)
 
 	aws s3 sync \
 		$(EXE_REPO) \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PRODUCT_VERSION).$(BUILD_NUMBER)/$(WIN_ARCH)/ \
+		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/ \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PRODUCT_VERSION).$(BUILD_NUMBER)/$(WIN_ARCH)/  \
+		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/  \
 		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(WIN_ARCH)/ \
 		--acl public-read --delete
+
+$(ARCH_REPO_DATA): $(ARCHIVE)
+	rm -rfv $(ARCH_REPO)
+	mkdir -p $(ARCH_REPO)
+
+	cp -rv $(ARCHIVE) $(ARCH_REPO)
+
+	aws s3 sync \
+		$(ARCH_REPO) \
+		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/ \
+		--acl public-read --delete
+
+	aws s3 sync \
+		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/  \
+		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(ARCH_SUFFIX)/ \
+		--acl public-read --delete
+
+%-$(ARCH_SUFFIX).tar.gz : %
+	tar -zcvf $@ $<
+
+%-$(ARCH_SUFFIX).zip : %
+	7z a -y $@ $<
 
 deploy: $(DEPLOY)
