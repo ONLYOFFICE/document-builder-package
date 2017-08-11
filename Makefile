@@ -70,7 +70,7 @@ ARCH_REPO_DIR := linux
 
 ifeq ($(OS),Windows_NT)
   ARCH_REPO_DIR := $(EXE_REPO_DIR)
-	DEPLOY := $(EXE_REPO_DATA) $(ARCH_REPO_DATA)
+	DEPLOY := $(EXE_REPO_DATA)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
@@ -193,11 +193,12 @@ $(DEB_REPO_DATA): $(DEB)
 		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/repo \
 		--acl public-read --delete
 
-$(EXE_REPO_DATA): $(EXE)
+$(EXE_REPO_DATA): $(EXE) $(ARCHIVE)
 	rm -rfv $(EXE_REPO)
 	mkdir -p $(EXE_REPO)
 
 	cp -rv $(EXE) $(EXE_REPO);
+	cp -rv $(ARCHIVE) $(EXE_REPO)
 
 	aws s3 sync \
 		$(EXE_REPO) \
