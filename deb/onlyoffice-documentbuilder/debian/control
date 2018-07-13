@@ -6,7 +6,14 @@ Build-Depends: debhelper (>= 8.0.0)
 
 Package: onlyoffice-documentbuilder
 Architecture: {{BUILD_ARCH}}
-Depends: libcurl3-gnutls, libc6, libxml2, libcurl3, fonts-dejavu | ttf-dejavu, fonts-opensymbol 
-Recommends: fonts-liberation, ttf-mscorefonts-installer, fonts-crosextra-carlito
+Depends: libxml2,
+  libcurl3 | libcurl4,
+  libcurl3-gnutls,
+  libc6,
+  fonts-opensymbol,
+  fonts-dejavu | ttf-dejavu 
+Recommends: fonts-liberation,
+  ttf-mscorefonts-installer,
+  fonts-crosextra-carlito
 Description: tool to create documents in office file formats including Office Open XML formats:
  .docx, .xlsx, .pptx.
