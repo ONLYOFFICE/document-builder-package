@@ -1,3 +1,5 @@
+#define sPlatform            'win_32'
+
 #include "common.iss"
 
 [Setup]
