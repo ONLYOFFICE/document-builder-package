@@ -193,12 +193,11 @@ $(DEB_REPO_DATA): $(DEB)
 		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/repo \
 		--acl public-read --delete
 
-$(EXE_REPO_DATA): $(EXE) $(ARCHIVE)
+$(EXE_REPO_DATA): $(EXE)
 	rm -rfv $(EXE_REPO)
 	mkdir -p $(EXE_REPO)
 
 	cp -rv $(EXE) $(EXE_REPO);
-	cp -rv $(ARCHIVE) $(EXE_REPO)
 
 	aws s3 sync \
 		$(EXE_REPO) \
