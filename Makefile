@@ -69,13 +69,15 @@ EXE_REPO_DIR = windows
 
 ARCH_REPO_DIR := linux
 
+INDEX_HTML := index.html
+
 ifeq ($(OS),Windows_NT)
   ARCH_REPO_DIR := $(EXE_REPO_DIR)
-	DEPLOY := $(EXE_REPO_DATA)
+	DEPLOY := $(EXE_REPO_DATA) $(INDEX_HTML)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
-		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(ARCH_REPO_DATA)
+		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(ARCH_REPO_DATA) $(INDEX_HTML)
 	endif
 endif
 
