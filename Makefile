@@ -3,6 +3,7 @@ PRODUCT_NAME ?= documentbuilder
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
 PACKAGE_NAME := $(COMPANY_NAME)-$(PRODUCT_NAME)
+S3_BUCKET ?= repo-doc-onlyoffice-com
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
@@ -230,5 +231,23 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
+
+M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
+
+ifeq ($(OS),Windows_NT)
+	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(REPO_NAME)/$(notdir $(EXE))"
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
+		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
+
+	endif
+endif
+
+M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
+
+% : %.m4
+	m4 $(M4_PARAMS)	$< > $@
 
 deploy: $(DEPLOY)
