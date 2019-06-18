@@ -77,7 +77,7 @@ ifeq ($(OS),Windows_NT)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
-		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(ARCH_REPO_DATA) $(INDEX_HTML)
+		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(INDEX_HTML)
 	endif
 endif
 
@@ -248,7 +248,7 @@ else
 	endif
 endif
 
-M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
+# M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
