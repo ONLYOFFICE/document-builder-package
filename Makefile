@@ -129,6 +129,7 @@ clean:
 		$(DEB_REPO)\
 		$(RPM_REPO)\
 		$(EXE_REPO)\
+		$(INDEX_HTML)\
 		$(PRODUCT_NAME)
 
 $(PRODUCT_NAME):
