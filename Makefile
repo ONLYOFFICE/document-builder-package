@@ -52,7 +52,8 @@ EXE_BUILD_DIR = $(PWD)/exe
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 
-DEB_REPO := $(PWD)/repo
+REPO_NAME := repo
+DEB_REPO := $(PWD)/$(REPO_NAME)
 RPM_REPO := $(PWD)/repo-rpm
 
 DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
@@ -187,16 +188,16 @@ $(DEB_REPO_DATA): $(DEB)
 	$(MKDIR) $(DEB_REPO)
 
 	$(CP) $(DEB_REPO) $(DEB)
-	dpkg-scanpackages -m repo /dev/null | gzip -9c > $(DEB_REPO_DATA)
+	dpkg-scanpackages -m $(REPO_NAME) /dev/null | gzip -9c > $(DEB_REPO_DATA)
 
 	aws s3 sync \
 		$(DEB_REPO) \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/$(REPO_NAME) \
 		--acl public-read --delete
 
 $(EXE_REPO_DATA): $(EXE)
@@ -240,7 +241,7 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
 
 ifeq ($(OS),Windows_NT)
-	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(REPO_NAME)/$(notdir $(EXE))"
+	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
