@@ -11,12 +11,14 @@ ifeq ($(UNAME_M),x86_64)
 	DEB_ARCH := amd64
 	WIN_ARCH := x64
 	ARCH_SUFFIX := x64
+	ARCHITECTURE := 64
 endif
 ifneq ($(filter %86,$(UNAME_M)),)
 	RPM_ARCH := i386
 	DEB_ARCH := i386
 	WIN_ARCH := x86
 	ARCH_SUFFIX := x86
+	ARCHITECTURE := 32
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -25,6 +27,7 @@ ifeq ($(OS),Windows_NT)
 	SHELL_EXT := .bat
 	SHARED_EXT := .dll
 	ARCH_EXT := .zip
+	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/ONLYOFFICE/DocumentBuilder/*
 	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
 else
 	UNAME_S := $(shell uname -s)
@@ -33,6 +36,7 @@ else
 		SHARED_EXT := .so*
 		SHELL_EXT := .sh
 		ARCH_EXT := .tar.gz
+		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/onlyoffice/documentbuilder/*
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
@@ -99,8 +103,6 @@ ISCC := iscc //Qp /S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://ti
 endif
 
 CORE_PATH := ../core
-
-SRC += ../$(PRODUCT_NAME)-$(PRODUCT_VERSION)/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
