@@ -97,11 +97,7 @@ CP := cp -rf -t
 CD := cd
 CURL := curl -L -o
 
-ifeq ($(WIN_ARCH),x64)
 ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-else
-ISCC := iscc //Qp /S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-endif
 
 CORE_PATH := ../core
 
