@@ -102,7 +102,7 @@ WarningWrongArchitecture =You are trying to install the %1-bit application versi
 RunSamples =Generate samples documents
 
 [Files]
-Source: ..\..\documentbuilder-{#sAppProdVer}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: ..\..\build_tools\out\{#sPlatform}\{#APP_PATH}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
 
 
 Source: res\license.htm;                                  DestDir: {app};
