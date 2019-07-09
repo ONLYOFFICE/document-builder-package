@@ -3,6 +3,7 @@ PRODUCT_NAME ?= documentbuilder
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
 PACKAGE_NAME := $(COMPANY_NAME)-$(PRODUCT_NAME)
+S3_BUCKET ?= repo-doc-onlyoffice-com
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
@@ -10,12 +11,14 @@ ifeq ($(UNAME_M),x86_64)
 	DEB_ARCH := amd64
 	WIN_ARCH := x64
 	ARCH_SUFFIX := x64
+	ARCHITECTURE := 64
 endif
 ifneq ($(filter %86,$(UNAME_M)),)
 	RPM_ARCH := i386
 	DEB_ARCH := i386
 	WIN_ARCH := x86
 	ARCH_SUFFIX := x86
+	ARCHITECTURE := 32
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -24,6 +27,7 @@ ifeq ($(OS),Windows_NT)
 	SHELL_EXT := .bat
 	SHARED_EXT := .dll
 	ARCH_EXT := .zip
+	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/ONLYOFFICE/DocumentBuilder/*
 	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
 else
 	UNAME_S := $(shell uname -s)
@@ -32,6 +36,7 @@ else
 		SHARED_EXT := .so*
 		SHELL_EXT := .sh
 		ARCH_EXT := .tar.gz
+		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/onlyoffice/documentbuilder/*
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
@@ -47,7 +52,8 @@ EXE_BUILD_DIR = $(PWD)/exe
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 
-DEB_REPO := $(PWD)/repo
+REPO_NAME := repo
+DEB_REPO := $(PWD)/$(REPO_NAME)
 RPM_REPO := $(PWD)/repo-rpm
 
 DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
@@ -68,13 +74,15 @@ EXE_REPO_DIR = windows
 
 ARCH_REPO_DIR := linux
 
+INDEX_HTML := index.html
+
 ifeq ($(OS),Windows_NT)
   ARCH_REPO_DIR := $(EXE_REPO_DIR)
-	DEPLOY := $(EXE_REPO_DATA)
+	DEPLOY := $(EXE_REPO_DATA) $(INDEX_HTML)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
-		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(ARCH_REPO_DATA)
+		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(INDEX_HTML)
 	endif
 endif
 
@@ -89,15 +97,9 @@ CP := cp -rf -t
 CD := cd
 CURL := curl -L -o
 
-ifeq ($(WIN_ARCH),x64)
 ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-else
-ISCC := iscc //Qp /S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-endif
 
 CORE_PATH := ../core
-
-SRC += ../$(PRODUCT_NAME)-$(PRODUCT_VERSION)/*
 
 DEST := common/$(PRODUCT_NAME)/home
 
@@ -126,6 +128,7 @@ clean:
 		$(DEB_REPO)\
 		$(RPM_REPO)\
 		$(EXE_REPO)\
+		$(INDEX_HTML)\
 		$(PRODUCT_NAME)
 
 $(PRODUCT_NAME):
@@ -181,16 +184,16 @@ $(DEB_REPO_DATA): $(DEB)
 	$(MKDIR) $(DEB_REPO)
 
 	$(CP) $(DEB_REPO) $(DEB)
-	dpkg-scanpackages -m repo /dev/null | gzip -9c > $(DEB_REPO_DATA)
+	dpkg-scanpackages -m $(REPO_NAME) /dev/null | gzip -9c > $(DEB_REPO_DATA)
 
 	aws s3 sync \
 		$(DEB_REPO) \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
 		--acl public-read --delete
 
 	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/repo \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/repo \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
+		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/latest/$(DEB_ARCH)/$(REPO_NAME) \
 		--acl public-read --delete
 
 $(EXE_REPO_DATA): $(EXE)
@@ -230,5 +233,23 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
+
+M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
+
+ifeq ($(OS),Windows_NT)
+	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
+		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
+
+	endif
+endif
+
+# M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
+
+% : %.m4
+	m4 $(M4_PARAMS)	$< > $@
 
 deploy: $(DEPLOY)
