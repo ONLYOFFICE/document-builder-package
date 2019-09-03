@@ -103,6 +103,7 @@ RunSamples =Generate samples documents
 
 [Files]
 Source: ..\..\build_tools\out\{#sPlatform}\{#APP_PATH}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: ..\..\build_tools\out\{#sPlatform}\{#APP_PATH}\docbuilder.com.dll;    DestDir: {app}; Flags: ignoreversion regserver
 
 
 Source: res\license.htm;                                  DestDir: {app};
