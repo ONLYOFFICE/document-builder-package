@@ -1,8 +1,10 @@
-COMPANY_NAME ?= onlyoffice
-PRODUCT_NAME ?= documentbuilder
+COMPANY_NAME ?= ONLYOFFICE
+PRODUCT_NAME ?= DocumentBuilder
+COMPANY_NAME_LOW = $(shell echo $(COMPANY_NAME) | tr A-Z a-z)
+PRODUCT_NAME_LOW = $(shell echo $(PRODUCT_NAME) | tr A-Z a-z)
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
-PACKAGE_NAME := $(COMPANY_NAME)-$(PRODUCT_NAME)
+PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
 S3_BUCKET ?= repo-doc-onlyoffice-com
 
 UNAME_M := $(shell uname -m)
@@ -27,7 +29,7 @@ ifeq ($(OS),Windows_NT)
 	SHELL_EXT := .bat
 	SHARED_EXT := .dll
 	ARCH_EXT := .zip
-	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/ONLYOFFICE/DocumentBuilder/*
+	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/$(COMPANY_NAME)/$(PRODUCT_NAME)/*
 	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
 else
 	UNAME_S := $(shell uname -s)
@@ -36,13 +38,13 @@ else
 		SHARED_EXT := .so*
 		SHELL_EXT := .sh
 		ARCH_EXT := .tar.gz
-		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/onlyoffice/documentbuilder/*
+		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
 
 ARCH_REPO := $(PWD)/repo-arch
-ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
+ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 ARCH_PACKAGE_DIR := ..
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
@@ -86,7 +88,7 @@ else
 	endif
 endif
 
-ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
+ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
@@ -101,7 +103,7 @@ ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://t
 
 CORE_PATH := ../core
 
-DEST := common/$(PRODUCT_NAME)/home
+DEST := common/$(PRODUCT_NAME_LOW)/home
 
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
 
@@ -129,15 +131,15 @@ clean:
 		$(RPM_REPO)\
 		$(EXE_REPO)\
 		$(INDEX_HTML)\
-		$(PRODUCT_NAME)
+		$(PRODUCT_NAME_LOW)
 
-$(PRODUCT_NAME):
+$(PRODUCT_NAME_LOW):
 	$(MKDIR) $(DEST)
 	$(CP) $(DEST) $(SRC)
 
 	echo "Done" > $@
 
-$(RPM):	$(PRODUCT_NAME)
+$(RPM):	$(PRODUCT_NAME_LOW)
 	sed 's/{{PRODUCT_VERSION}}/'$(PRODUCT_VERSION)'/'  -i rpm/$(PACKAGE_NAME).spec
 	sed 's/{{BUILD_NUMBER}}/'${BUILD_NUMBER}'/'  -i rpm/$(PACKAGE_NAME).spec
 	sed 's/{{BUILD_ARCH}}/'${RPM_ARCH}'/'  -i rpm/$(PACKAGE_NAME).spec
@@ -148,7 +150,7 @@ endif
 
 	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
 
-$(DEB): $(PRODUCT_NAME)
+$(DEB): $(PRODUCT_NAME_LOW)
 	sed 's/{{PACKAGE_VERSION}}/'$(PACKAGE_VERSION)'/'  -i deb/$(PACKAGE_NAME)/debian/changelog
 	sed "s/{{BUILD_ARCH}}/"$(DEB_ARCH)"/"  -i deb/$(PACKAGE_NAME)/debian/control
 
