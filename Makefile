@@ -1,11 +1,26 @@
+PWD := $(shell pwd)
+CD := cd
+TOUCH := touch
+MKDIR := mkdir -p
+CP := cp -rf -t
+RM := rm -rfv
+CURL := curl -L -o
+
 COMPANY_NAME ?= ONLYOFFICE
 PRODUCT_NAME ?= DocumentBuilder
+
 COMPANY_NAME_LOW = $(shell echo $(COMPANY_NAME) | tr A-Z a-z)
 PRODUCT_NAME_LOW = $(shell echo $(PRODUCT_NAME) | tr A-Z a-z)
+
+PUBLISHER_NAME ?= Ascensio System SIA
+PUBLISHER_URL ?= http://onlyoffice.com
+SUPPORT_URL ?= http://support.onlyoffice.com
+SUPPORT_MAIL ?= support@onlyoffice.com
+
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
+
 PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
-S3_BUCKET ?= repo-doc-onlyoffice-com
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
@@ -39,12 +54,11 @@ else
 		SHELL_EXT := .sh
 		ARCH_EXT := .tar.gz
 		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
+		DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
 
-ARCH_REPO := $(PWD)/repo-arch
-ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 ARCH_PACKAGE_DIR := ..
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
@@ -54,11 +68,14 @@ EXE_BUILD_DIR = exe
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 
+ARCH_REPO := $(PWD)/repo-arch
+ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
+
 REPO_NAME := repo
 DEB_REPO := $(PWD)/$(REPO_NAME)
-RPM_REPO := $(PWD)/repo-rpm
-
 DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
+
+RPM_REPO := $(PWD)/repo-rpm
 RPM_REPO_DATA := $(RPM_REPO)/repodata
 
 EXE_REPO := repo-exe
@@ -93,11 +110,7 @@ RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
-MKDIR := mkdir -p
-RM := rm -rfv
-CP := cp -rf -t
-CD := cd
-CURL := curl -L -o
+S3_BUCKET ?= repo-doc-onlyoffice-com
 
 ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
 
@@ -106,6 +119,26 @@ CORE_PATH := ../core
 DEST := common/$(PRODUCT_NAME_LOW)/home
 
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
+
+DEB_DEPS += deb/debian/changelog
+DEB_DEPS += deb/debian/config
+DEB_DEPS += deb/debian/control
+DEB_DEPS += deb/debian/copyright
+DEB_DEPS += deb/debian/postinst
+DEB_DEPS += deb/debian/postrm
+DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
+
+M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
+M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
+M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
+M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)
+M4_PARAMS += -D M4_DB_PREFIX=$(DS_PREFIX)
+M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
+M4_PARAMS += -D M4_PUBLISHER_NAME="$(PUBLISHER_NAME)"
+M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
+M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
+M4_PARAMS += -D M4_SUPPORT_URL="$(SUPPORT_URL)"
+M4_PARAMS += -D M4_PLATFORM="$(PLATFORM)"
 
 .PHONY: all clean deb rpm exe deploy
 
@@ -122,6 +155,9 @@ exe: $(EXE)
 clean:
 	$(RM) $(DEB_PACKAGE_DIR)/*.deb\
 		$(DEB_PACKAGE_DIR)/*.changes\
+		$(DEB_DEPS)\
+		$(DEB_PACKAGE_DIR)/debian/.debhelper\
+		$(DEB_PACKAGE_DIR)/debian/$(PACKAGE_NAME).debhelper.log\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(VCREDIST)\
@@ -131,6 +167,7 @@ clean:
 		$(RPM_REPO)\
 		$(EXE_REPO)\
 		$(INDEX_HTML)\
+		$(DEST)\
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
@@ -150,11 +187,8 @@ endif
 
 	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
 
-$(DEB): $(PRODUCT_NAME_LOW)
-	sed 's/{{PACKAGE_VERSION}}/'$(PACKAGE_VERSION)'/'  -i deb/$(PACKAGE_NAME)/debian/changelog
-	sed "s/{{BUILD_ARCH}}/"$(DEB_ARCH)"/"  -i deb/$(PACKAGE_NAME)/debian/control
-
-	$(CD) deb/$(PACKAGE_NAME) && dpkg-buildpackage -b -uc -us
+$(DEB): $(DEB_DEPS) $(PRODUCT_NAME_LOW)
+	$(CD) deb && dpkg-buildpackage -b -uc -us
 
 $(EXE): $(ISXDL)
 	sed "s/"{{PRODUCT_VERSION}}"/"$(PRODUCT_VERSION)"/" -i exe/common.iss
@@ -253,5 +287,8 @@ endif
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
+
+deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
+	mv -f $< $@
 
 deploy: $(DEPLOY)
