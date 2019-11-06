@@ -133,6 +133,8 @@ DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
 
 RPM_DEPS += rpm/$(PACKAGE_NAME).spec
 
+WIN_DEPS += exe/$(PACKAGE_NAME).iss
+
 M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
 M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
@@ -140,6 +142,7 @@ M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)
 M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
 M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
+M4_PARAMS += -D M4_WIN_ARCH=$(WIN_ARCH)
 M4_PARAMS += -D M4_PUBLISHER_NAME="$(PUBLISHER_NAME)"
 M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
 M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
@@ -200,9 +203,7 @@ $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
 
 $(EXE): $(ISXDL)
-	sed "s/"{{PRODUCT_VERSION}}"/"$(PRODUCT_VERSION)"/" -i exe/common.iss
-	sed "s/"{{BUILD_NUMBER}}"/"$(BUILD_NUMBER)"/" -i exe/common.iss
-	cd exe && $(ISCC) $(PACKAGE_NAME)-$(WIN_ARCH).iss
+	cd exe && $(ISCC) $(PACKAGE_NAME).iss
 
 $(ISXDL):
 	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
@@ -303,5 +304,8 @@ deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
 
 rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 	cp -f $< $@
+
+exe/$(PACKAGE_NAME).iss : exe/package.iss
+	mv -f $< $@
 
 deploy: $(DEPLOY)
