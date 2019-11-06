@@ -131,12 +131,15 @@ DEB_DEPS += deb/debian/postinst
 DEB_DEPS += deb/debian/postrm
 DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
 
+RPM_DEPS += rpm/$(PACKAGE_NAME).spec
+
 M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
 M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
 M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)
 M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
+M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
 M4_PARAMS += -D M4_PUBLISHER_NAME="$(PUBLISHER_NAME)"
 M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
 M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
@@ -180,16 +183,18 @@ $(PRODUCT_NAME_LOW):
 
 	echo "Done" > $@
 
-$(RPM):	$(PRODUCT_NAME_LOW)
-	sed 's/{{PRODUCT_VERSION}}/'$(PRODUCT_VERSION)'/'  -i rpm/$(PACKAGE_NAME).spec
-	sed 's/{{BUILD_NUMBER}}/'${BUILD_NUMBER}'/'  -i rpm/$(PACKAGE_NAME).spec
-	sed 's/{{BUILD_ARCH}}/'${RPM_ARCH}'/'  -i rpm/$(PACKAGE_NAME).spec
-
-ifeq ($(RPM_ARCH),i386)
-	sed 's/lib64/lib/'  -i rpm/$(PACKAGE_NAME).spec
-endif
-
-	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
+$(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
+	$(CD) rpm && rpmbuild -bb \
+	--define "_topdir $(RPM_BUILD_DIR)" \
+	--define "_package_name $(PACKAGE_NAME)" \
+	--define "_product_version $(PRODUCT_VERSION)" \
+	--define "_build_number $(BUILD_NUMBER)" \
+	--define "_publisher_name $(PUBLISHER_NAME)" \
+	--define "_publisher_url $(PUBLISHER_URL)" \
+	--define "_support_mail $(SUPPORT_MAIL)" \
+	--define "_rpm_arch $(RPM_ARCH)" \
+	--define "_db_prefix $(DB_PREFIX)" \
+	$(PACKAGE_NAME).spec
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
@@ -295,5 +300,8 @@ common/documentbuilder/bin/$(PACKAGE_NAME) : common/documentbuilder/bin/document
 
 deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
 	mv -f $< $@
+
+rpm/$(PACKAGE_NAME).spec : rpm/package.spec
+	cp -f $< $@
 
 deploy: $(DEPLOY)

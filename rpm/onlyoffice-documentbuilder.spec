@@ -1,14 +1,14 @@
 Summary: Online viewers and editors for text, spreadsheet and presentation files
-Name: onlyoffice-documentbuilder
-Version: {{PRODUCT_VERSION}}
-Release: {{BUILD_NUMBER}}
+Name: %{_package_name}
+Version: %{_product_version}
+Release: %{_build_number}
 License: Commercial
 Group: Applications/File
-URL: http://onlyoffice.com/
-Vendor: ONLYOFFICE (document builder)
-Packager: ONLYOFFICE (document builder) <support@onlyoffice.com>
+URL: %{_publisher_url}
+Vendor: %{_publisher_name}
+Packager: %{_publisher_name} <%{_support_mail}>
 Requires: glibc, libcurl, libxml2, dejavu-lgc-sans-fonts, dejavu-lgc-sans-mono-fonts, dejavu-lgc-serif-fonts, dejavu-sans-fonts, dejavu-sans-mono-fonts, dejavu-serif-fonts, libreoffice-opensymbol-fonts
-BuildArch: {{BUILD_ARCH}}
+BuildArch: %{_rpm_arch}
 AutoReq: no
 AutoProv: no
 
@@ -17,41 +17,45 @@ tool to create documents in office file formats including Office Open XML format
  .docx, .xlsx, .pptx.
 
 %prep
-rm -rf "$RPM_BUILD_ROOT"
+rm -rf "%{buildroot}"
 
 %build
 
 %install
 
-DOCUMENTSERVER_BIN=../../../common/documentbuilder/bin
-DOCUMENTSERVER_HOME=../../../common/documentbuilder/home
+DOCUMENTBUILDER_BIN=%{_builddir}/../../../common/documentbuilder/bin
+DOCUMENTBUILDER_HOME=%{_builddir}/../../../common/documentbuilder/home
+
+BIN_DIR=%{buildroot}%{_bindir}
+HOME_DIR=%{buildroot}/opt/%{_db_prefix}
 
 #install documentbuilder files
-mkdir -p "$RPM_BUILD_ROOT/opt/onlyoffice/documentbuilder/"
-cp -r $DOCUMENTSERVER_HOME/* "$RPM_BUILD_ROOT/opt/onlyoffice/documentbuilder/"
+mkdir -p "$HOME_DIR/"
+cp -r $DOCUMENTBUILDER_HOME/* "$HOME_DIR/"
 
 #install documentbuilder bin
-mkdir -p "$RPM_BUILD_ROOT/usr/bin/"
-cp -r $DOCUMENTSERVER_BIN/* "$RPM_BUILD_ROOT/usr/bin/"
+mkdir -p "$BIN_DIR/"
+cp -r $DOCUMENTBUILDER_BIN/documentbuilder "$BIN_DIR/"
+cp -r $DOCUMENTBUILDER_BIN/%{_package_name} "$BIN_DIR/"
 
 %clean
-rm -rf "$RPM_BUILD_ROOT"
+rm -rf "%{buildroot}"
 
 %files
-%attr(-, root, root) /opt/onlyoffice/documentbuilder/*
+%attr(-, root, root) /opt/%{_db_prefix}/*
 %attr(-, root, root) /usr/bin/*
 
 %pre
 
 %post
-chmod -R 777 /opt/onlyoffice/documentbuilder
-ln -sf /usr/lib64/libcurl.so.4 /opt/onlyoffice/documentbuilder/libcurl-gnutls.so.4
+chmod -R 777 /opt/%{_db_prefix}
+ln -sf %{_libdir}/libcurl.so.4 /opt/%{_db_prefix}/libcurl-gnutls.so.4
 
 %preun
-unlink /opt/onlyoffice/documentbuilder/libcurl-gnutls.so.4
+unlink /opt/%{_db_prefix}/libcurl-gnutls.so.4
 
 %postun
 
 %changelog
-* Tue Jul 26 2016 ONLYOFFICE (document builder) <support@onlyoffice.com>
+* Tue Jul 26 2016 $PUBLISHER_NAME <$SUPPORT_MAIL>
 - Initial release.
