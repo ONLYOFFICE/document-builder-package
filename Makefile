@@ -95,8 +95,10 @@ ARCH_REPO_DIR := linux
 
 INDEX_HTML := index.html
 
+S3_BUCKET ?= repo-doc-onlyoffice-com
+
 ifeq ($(OS),Windows_NT)
-  ARCH_REPO_DIR := $(EXE_REPO_DIR)
+	ARCH_REPO_DIR := $(EXE_REPO_DIR)
 	DEPLOY := $(EXE_REPO_DATA) $(INDEX_HTML)
 else
 	UNAME_S := $(shell uname -s)
@@ -110,15 +112,16 @@ RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
-S3_BUCKET ?= repo-doc-onlyoffice-com
-
-ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-
 CORE_PATH := ../core
 
-DEST := common/$(PRODUCT_NAME_LOW)/home
+DOCUMENTBUILDER := common/documentbuilder/home
+DOCUMENTBUILDER_BIN := common/documentbuilder/bin
 
+ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
+
+LINUX_DEPS += common/documentbuilder/bin/documentbuilder
+LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
 
 DEB_DEPS += deb/debian/changelog
 DEB_DEPS += deb/debian/config
@@ -132,13 +135,14 @@ M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
 M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
 M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)
-M4_PARAMS += -D M4_DB_PREFIX=$(DS_PREFIX)
+M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
 M4_PARAMS += -D M4_PUBLISHER_NAME="$(PUBLISHER_NAME)"
 M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
 M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
 M4_PARAMS += -D M4_SUPPORT_URL="$(SUPPORT_URL)"
 M4_PARAMS += -D M4_PLATFORM="$(PLATFORM)"
+M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
 
 .PHONY: all clean deb rpm exe deploy
 
@@ -167,12 +171,12 @@ clean:
 		$(RPM_REPO)\
 		$(EXE_REPO)\
 		$(INDEX_HTML)\
-		$(DEST)\
+		$(DOCUMENTBUILDER)\
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
-	$(MKDIR) $(DEST)
-	$(CP) $(DEST) $(SRC)
+	$(MKDIR) $(DOCUMENTBUILDER)
+	$(CP) $(DOCUMENTBUILDER) $(SRC)
 
 	echo "Done" > $@
 
@@ -187,7 +191,7 @@ endif
 
 	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
 
-$(DEB): $(DEB_DEPS) $(PRODUCT_NAME_LOW)
+$(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
 
 $(EXE): $(ISXDL)
@@ -270,8 +274,6 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
 
-M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
-
 ifeq ($(OS),Windows_NT)
 	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
 else
@@ -287,6 +289,9 @@ endif
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
+
+common/documentbuilder/bin/$(PACKAGE_NAME) : common/documentbuilder/bin/documentbuilder
+	ln -srf $< $@
 
 deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
 	mv -f $< $@
