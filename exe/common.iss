@@ -1,6 +1,15 @@
 ; Uncomment the line below to be able to compile the script from within the IDE.
 ;#define COMPILE_FROM_IDE
 
+#ifndef sBrandingFolder
+  #define sBrandingFolder   '..\branding'
+#endif
+
+#define sBrandingFile str(sBrandingFolder + "\exe\branding.iss")
+#if FileExists(sBrandingFile)
+  #include str(sBrandingFile)
+#endif
+
 #ifndef sCompanyName
   #define sCompanyName      'ONLYOFFICE'
 #endif
@@ -85,8 +94,8 @@ ArchitecturesAllowed      ={#sWinArch}
 #endif
 
 DefaultGroupName          ={#sAppPath}
-WizardImageFile           = res\dialogpicture.bmp
-WizardSmallImageFile      = res\dialogicon.bmp
+WizardImageFile           ={#sBrandingFolder}\exe\res\dialogpicture.bmp
+WizardSmallImageFile      ={#sBrandingFolder}\exe\res\dialogicon.bmp
 LicenseFile               = .\LICENSE.rtf
 
 UsePreviousAppDir         = no
@@ -163,9 +172,8 @@ RunSamples =Generate samples documents
 Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
 Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\docbuilder.com.dll;    DestDir: {app}; Flags: ignoreversion regserver
 
-
-Source: res\license.htm;                                  DestDir: {app};
-Source: res\readme.txt;                                   DestDir: {app}; Flags: isreadme;
+Source: {#sBrandingFolder}\exe\res\license.htm;               DestDir: {app};
+Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Flags: isreadme;
 
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 

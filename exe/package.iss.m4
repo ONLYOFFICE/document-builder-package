@@ -3,6 +3,7 @@
 #define sPublisherName      'M4_PUBLISHER_NAME'
 #define sPublisherUrl       'M4_PUBLISHER_URL'
 #define sSupportUrl         'M4_SUPPORT_URL'
+#define sBrandingFolder     'patsubst(M4_BRANDING_DIR,`/',`\\')'
 #define sWinArch            'M4_WIN_ARCH'
 #if {#sWinArch} == 'x86'
   #define sPlatform         'win_86'
