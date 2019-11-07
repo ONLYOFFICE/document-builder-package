@@ -68,7 +68,7 @@ DEB_BUILD_DIR := $(PWD)/deb
 EXE_BUILD_DIR = exe
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
+DEB_PACKAGE_DIR := .
 
 ARCH_REPO := $(PWD)/repo-arch
 ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
@@ -131,6 +131,7 @@ DEB_DEPS += deb/debian/control
 DEB_DEPS += deb/debian/copyright
 DEB_DEPS += deb/debian/postinst
 DEB_DEPS += deb/debian/postrm
+DEB_DEPS += deb/debian/rules
 DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
 
 RPM_DEPS += rpm/$(PACKAGE_NAME).spec
@@ -166,11 +167,18 @@ deb: $(DEB)
 exe: $(EXE)
 
 clean:
-	$(RM) $(DEB_PACKAGE_DIR)/*.deb\
-		$(DEB_PACKAGE_DIR)/*.changes\
+	$(RM) $(LINUX_DEPS)\
+		$(DOCUMENTBUILDER)\
 		$(DEB_DEPS)\
-		$(DEB_PACKAGE_DIR)/debian/.debhelper\
-		$(DEB_PACKAGE_DIR)/debian/$(PACKAGE_NAME).debhelper.log\
+		$(DEB_BUILD_DIR)/debian/.debhelper\
+		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)\
+		$(DEB_BUILD_DIR)/debian/files\
+		$(DEB_BUILD_DIR)/debian/*.debhelper.log\
+		$(DEB_BUILD_DIR)/debian/*.postrm.debhelper\
+		$(DEB_BUILD_DIR)/debian/*.substvars\
+		$(DEB_PACKAGE_DIR)/*.deb\
+		$(DEB_PACKAGE_DIR)/*.changes\
+		$(DEB_PACKAGE_DIR)/*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(VCREDIST)\
@@ -180,14 +188,13 @@ clean:
 		$(RPM_REPO)\
 		$(EXE_REPO)\
 		$(INDEX_HTML)\
-		$(DOCUMENTBUILDER)\
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
 	$(MKDIR) $(DOCUMENTBUILDER)
 	$(CP) $(DOCUMENTBUILDER) $(SRC)
 
-	echo "Done" > $@
+# 	echo "Done" > $@
 
 $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) rpm && rpmbuild -bb \
