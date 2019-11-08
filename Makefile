@@ -151,7 +151,6 @@ M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
 M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
 M4_PARAMS += -D M4_SUPPORT_URL="$(SUPPORT_URL)"
 M4_PARAMS += -D M4_BRANDING_DIR="$(abspath $(BRANDING_DIR))"
-M4_PARAMS += -D M4_PLATFORM="$(PLATFORM)"
 M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
 
 .PHONY: all clean deb rpm exe deploy
@@ -212,7 +211,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
 
-$(EXE): $(ISXDL)
+$(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(PACKAGE_NAME).iss
 
 $(ISXDL):

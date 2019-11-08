@@ -54,6 +54,12 @@
   #define sWinArch          'x64'
 #endif
 
+#if str(sWinArch) == 'x64'
+  #define sPlatform         'win_64'
+#elif str(sWinArch) == 'x86'
+  #define sPlatform         'win_32'
+#endif
+
 #ifndef sAppName
   #define sAppName          str(sCompanyName + " " + sProductName)
 #endif
@@ -84,12 +90,12 @@ VersionInfoVersion        ={#sAppVersion}
 OutputBaseFileName        ={#sPackageName}-{#sAppVersion}-{#sWinArch}
 
 AppPublisher              ={#sPublisherName}
-AppPublisherURL           ={#sPublisherNameURL}
+AppPublisherURL           ={#sPublisherURL}
 AppSupportURL             ={#sSupportURL}
 AppCopyright              ={#sAppCopyright}
 
 ArchitecturesAllowed      ={#sWinArch}
-#if {#sWinArch} == 'x64'
+#if str(sWinArch) == 'x64'
   ArchitecturesInstallIn64BitMode=x64
 #endif
 
