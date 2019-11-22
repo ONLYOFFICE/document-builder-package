@@ -4,3 +4,13 @@ repo-rpm
 rpm/builddir
 repo-exe
 index.html
+.debhelper
+*.debhelper.log
+common/documentbuilder/home/
+deb/debian/changelog
+deb/debian/config
+deb/debian/control
+deb/debian/copyright
+deb/debian/postinst
+deb/debian/postrm
+deb/debian/*.install
