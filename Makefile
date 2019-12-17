@@ -153,6 +153,16 @@ M4_PARAMS += -D M4_SUPPORT_URL="$(SUPPORT_URL)"
 M4_PARAMS += -D M4_BRANDING_DIR="$(abspath $(BRANDING_DIR))"
 M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
 
+ifeq ($(OS),Windows_NT)
+	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
+		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
+	endif
+endif
+
 .PHONY: all clean deb rpm exe deploy
 
 all: deb rpm arch
@@ -288,19 +298,6 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
-
-ifeq ($(OS),Windows_NT)
-	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
-		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
-
-	endif
-endif
-
-# M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
