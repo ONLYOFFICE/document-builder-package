@@ -146,11 +146,11 @@ M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
 M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
 M4_PARAMS += -D M4_WIN_ARCH=$(WIN_ARCH)
-M4_PARAMS += -D M4_PUBLISHER_NAME="$(PUBLISHER_NAME)"
-M4_PARAMS += -D M4_PUBLISHER_URL="$(PUBLISHER_URL)"
-M4_PARAMS += -D M4_SUPPORT_MAIL="$(SUPPORT_MAIL)"
-M4_PARAMS += -D M4_SUPPORT_URL="$(SUPPORT_URL)"
-M4_PARAMS += -D M4_BRANDING_DIR="$(abspath $(BRANDING_DIR))"
+M4_PARAMS += -D M4_PUBLISHER_NAME='$(PUBLISHER_NAME)'
+M4_PARAMS += -D M4_PUBLISHER_URL='$(PUBLISHER_URL)'
+M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
+M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
+M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
 M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
 
 ifeq ($(OS),Windows_NT)
@@ -207,15 +207,15 @@ $(PRODUCT_NAME_LOW):
 
 $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) rpm && rpmbuild -bb \
-	--define "_topdir $(RPM_BUILD_DIR)" \
-	--define "_package_name $(PACKAGE_NAME)" \
-	--define "_product_version $(PRODUCT_VERSION)" \
-	--define "_build_number $(BUILD_NUMBER)" \
-	--define "_publisher_name $(PUBLISHER_NAME)" \
-	--define "_publisher_url $(PUBLISHER_URL)" \
-	--define "_support_mail $(SUPPORT_MAIL)" \
-	--define "_rpm_arch $(RPM_ARCH)" \
-	--define "_db_prefix $(DB_PREFIX)" \
+	--define '_topdir $(RPM_BUILD_DIR)' \
+	--define '_package_name $(PACKAGE_NAME)' \
+	--define '_product_version $(PRODUCT_VERSION)' \
+	--define '_build_number $(BUILD_NUMBER)' \
+	--define '_publisher_name $(PUBLISHER_NAME)' \
+	--define '_publisher_url $(PUBLISHER_URL)' \
+	--define '_support_mail $(SUPPORT_MAIL)' \
+	--define '_rpm_arch $(RPM_ARCH)' \
+	--define '_db_prefix $(DB_PREFIX)' \
 	$(PACKAGE_NAME).spec
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
