@@ -1,40 +1,112 @@
 ; Uncomment the line below to be able to compile the script from within the IDE.
 ;#define COMPILE_FROM_IDE
 
-#define sAppName            'ONLYOFFICE Document Builder'
-#define APP_PATH            'ONLYOFFICE\DocumentBuilder'
-#define NAME_EXE_OUT        'docbuilder.exe'
-#define URL_HELP            'http://helpcenter.onlyoffice.com/developers/document-builder/index.aspx'
-
-#ifndef COMPILE_FROM_IDE
-#define sAppVersion         '{{PRODUCT_VERSION}}.{{BUILD_NUMBER}}'
-#define sAppProdVer         '{{PRODUCT_VERSION}}'
-#else
-#define sAppVersion         '0.0.0.0'
-#define sAppProdVer         '0.0.0'
+#ifndef sBrandingFolder
+  #define sBrandingFolder   '..\branding'
 #endif
 
-#define sAppVerShort        Copy(sAppVersion, 0, 3)
+#define sBrandingFile str(sBrandingFolder + "\exe\branding.iss")
+#if FileExists(sBrandingFile)
+  #include str(sBrandingFile)
+#endif
+
+#ifndef sCompanyName
+  #define sCompanyName      'ONLYOFFICE'
+#endif
+
+#ifndef sIntCompanyName
+  #define sIntCompanyName   str(sCompanyName)
+#endif
+
+#ifndef sProductName
+  #define sProductName      'DocumentBuilder'
+#endif
+
+#ifndef sIntProductName
+  #define sIntProductName   str(sProductName)
+#endif
+
+#ifndef sPackageName
+  #define sPackageName      str(LowerCase(sCompanyName) + "-" + LowerCase(sProductName))
+#endif
+
+#ifndef sPublisherName
+  #define sPublisherName    'Ascensio System SIA'
+#endif
+
+#ifndef sPublisherUrl
+  #define sPublisherUrl     'https://www.onlyoffice.com/'
+#endif
+
+#ifndef sSupportURL
+  #define sSupportURL       str(sPublisherUrl + "support.aspx")
+#endif
+
+#ifndef URL_HELP
+  #define URL_HELP          'http://helpcenter.onlyoffice.com/developers/document-builder/index.aspx'
+#endif
+
+#ifndef sAppCopyright
+  #define sAppCopyright     str("Copyright (C) 2016 " + sPublisherName)
+#endif
+
+#ifndef sWinArch
+  #define sWinArch          'x64'
+#endif
+
+#if str(sWinArch) == 'x64'
+  #define sPlatform         'win_64'
+#elif str(sWinArch) == 'x86'
+  #define sPlatform         'win_32'
+#endif
+
+#ifndef sAppName
+  #define sAppName          str(sCompanyName + " " + sProductName)
+#endif
+
+#ifndef sAppPath
+  #define sAppPath          str(sIntCompanyName + "\" + sIntProductName)
+#endif
+
+#define NAME_EXE_OUT        'docbuilder.exe'
+
+#ifndef sAppVerShort
+  #define sAppVerShort      '0.0.0'
+#endif
+
+#ifndef sAppBuildNumber
+  #define sAppBuildNumber   '0'
+#endif
+
+#ifndef sAppVersion
+  #define sAppVersion       str(sAppVerShort + '.' + sAppBuildNumber)
+#endif
 
 [Setup]
 AppName                   ={#sAppName}
 AppVerName                ={#sAppName} {#sAppVerShort}
 AppVersion                ={#sAppVersion}
 VersionInfoVersion        ={#sAppVersion}
+OutputBaseFileName        ={#sPackageName}-{#sAppVersion}-{#sWinArch}
 
-AppPublisher              = Ascensio System SIA.
-AppPublisherURL           = http://www.onlyoffice.com/
-AppSupportURL             = http://www.onlyoffice.com/support.aspx
-AppCopyright              = Copyright (C) 2016 Ascensio System SIA.
+AppPublisher              ={#sPublisherName}
+AppPublisherURL           ={#sPublisherURL}
+AppSupportURL             ={#sSupportURL}
+AppCopyright              ={#sAppCopyright}
 
-DefaultGroupName          = ONLYOFFICE\Document Builder
-WizardImageFile           = res\dialogpicture.bmp
-WizardSmallImageFile      = res\dialogicon.bmp
+ArchitecturesAllowed      ={#sWinArch}
+#if str(sWinArch) == 'x64'
+  ArchitecturesInstallIn64BitMode=x64
+#endif
+
+DefaultGroupName          ={#sAppPath}
+WizardImageFile           ={#sBrandingFolder}\exe\res\dialogpicture.bmp
+WizardSmallImageFile      ={#sBrandingFolder}\exe\res\dialogicon.bmp
 LicenseFile               = .\LICENSE.rtf
 
 UsePreviousAppDir         = no
 DirExistsWarning          = no
-DefaultDirName            = C:\{#APP_PATH}
+DefaultDirName            =C:\{#sAppPath}
 DisableProgramGroupPage   = yes
 DisableWelcomePage        = no
 AllowNoIcons              = yes
@@ -44,6 +116,7 @@ Compression               = lzma
 PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
 SetupMutex                = ASC
+MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 
@@ -102,12 +175,11 @@ WarningWrongArchitecture =You are trying to install the %1-bit application versi
 RunSamples =Generate samples documents
 
 [Files]
-Source: ..\..\build_tools\out\{#sPlatform}\{#APP_PATH}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
-Source: ..\..\build_tools\out\{#sPlatform}\{#APP_PATH}\docbuilder.com.dll;    DestDir: {app}; Flags: ignoreversion regserver
+Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\docbuilder.com.dll;    DestDir: {app}; Flags: ignoreversion regserver
 
-
-Source: res\license.htm;                                  DestDir: {app};
-Source: res\readme.txt;                                   DestDir: {app}; Flags: isreadme;
+Source: {#sBrandingFolder}\exe\res\license.htm;               DestDir: {app};
+Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Flags: isreadme;
 
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 

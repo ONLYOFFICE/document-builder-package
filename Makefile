@@ -1,11 +1,28 @@
+PWD := $(shell pwd)
+CD := cd
+TOUCH := touch
+MKDIR := mkdir -p
+CP := cp -rf -t
+RM := rm -rfv
+CURL := curl -L -o
+
 COMPANY_NAME ?= ONLYOFFICE
 PRODUCT_NAME ?= DocumentBuilder
+
 COMPANY_NAME_LOW = $(shell echo $(COMPANY_NAME) | tr A-Z a-z)
 PRODUCT_NAME_LOW = $(shell echo $(PRODUCT_NAME) | tr A-Z a-z)
+
+PUBLISHER_NAME ?= Ascensio System SIA
+PUBLISHER_URL ?= http://onlyoffice.com
+SUPPORT_URL ?= http://support.onlyoffice.com
+SUPPORT_MAIL ?= support@onlyoffice.com
+
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
+
+BRANDING_DIR ?= ./branding
+
 PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
-S3_BUCKET ?= repo-doc-onlyoffice-com
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
@@ -39,12 +56,11 @@ else
 		SHELL_EXT := .sh
 		ARCH_EXT := .tar.gz
 		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
+		DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
 
-ARCH_REPO := $(PWD)/repo-arch
-ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 ARCH_PACKAGE_DIR := ..
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
@@ -52,13 +68,16 @@ DEB_BUILD_DIR := $(PWD)/deb
 EXE_BUILD_DIR = exe
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
+DEB_PACKAGE_DIR := .
+
+ARCH_REPO := $(PWD)/repo-arch
+ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 
 REPO_NAME := repo
 DEB_REPO := $(PWD)/$(REPO_NAME)
-RPM_REPO := $(PWD)/repo-rpm
-
 DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
+
+RPM_REPO := $(PWD)/repo-rpm
 RPM_REPO_DATA := $(RPM_REPO)/repodata
 
 EXE_REPO := repo-exe
@@ -78,8 +97,10 @@ ARCH_REPO_DIR := linux
 
 INDEX_HTML := index.html
 
+S3_BUCKET ?= repo-doc-onlyoffice-com
+
 ifeq ($(OS),Windows_NT)
-  ARCH_REPO_DIR := $(EXE_REPO_DIR)
+	ARCH_REPO_DIR := $(EXE_REPO_DIR)
 	DEPLOY := $(EXE_REPO_DATA) $(INDEX_HTML)
 else
 	UNAME_S := $(shell uname -s)
@@ -93,19 +114,54 @@ RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
-MKDIR := mkdir -p
-RM := rm -rfv
-CP := cp -rf -t
-CD := cd
-CURL := curl -L -o
-
-ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
-
 CORE_PATH := ../core
 
-DEST := common/$(PRODUCT_NAME_LOW)/home
+DOCUMENTBUILDER := common/documentbuilder/home
+DOCUMENTBUILDER_BIN := common/documentbuilder/bin
 
+ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
+
+LINUX_DEPS += common/documentbuilder/bin/documentbuilder
+LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
+
+DEB_DEPS += deb/debian/changelog
+DEB_DEPS += deb/debian/config
+DEB_DEPS += deb/debian/control
+DEB_DEPS += deb/debian/copyright
+DEB_DEPS += deb/debian/postinst
+DEB_DEPS += deb/debian/postrm
+DEB_DEPS += deb/debian/rules
+DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
+
+RPM_DEPS += rpm/$(PACKAGE_NAME).spec
+
+WIN_DEPS += exe/$(PACKAGE_NAME).iss
+
+M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
+M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
+M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
+M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)
+M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
+M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
+M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
+M4_PARAMS += -D M4_WIN_ARCH=$(WIN_ARCH)
+M4_PARAMS += -D M4_PUBLISHER_NAME='$(PUBLISHER_NAME)'
+M4_PARAMS += -D M4_PUBLISHER_URL='$(PUBLISHER_URL)'
+M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
+M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
+M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
+M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
+
+ifeq ($(OS),Windows_NT)
+	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
+		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
+	endif
+endif
 
 .PHONY: all clean deb rpm exe deploy
 
@@ -120,8 +176,18 @@ deb: $(DEB)
 exe: $(EXE)
 
 clean:
-	$(RM) $(DEB_PACKAGE_DIR)/*.deb\
+	$(RM) $(LINUX_DEPS)\
+		$(DOCUMENTBUILDER)\
+		$(DEB_DEPS)\
+		$(DEB_BUILD_DIR)/debian/.debhelper\
+		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)\
+		$(DEB_BUILD_DIR)/debian/files\
+		$(DEB_BUILD_DIR)/debian/*.debhelper.log\
+		$(DEB_BUILD_DIR)/debian/*.postrm.debhelper\
+		$(DEB_BUILD_DIR)/debian/*.substvars\
+		$(DEB_PACKAGE_DIR)/*.deb\
 		$(DEB_PACKAGE_DIR)/*.changes\
+		$(DEB_PACKAGE_DIR)/*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(VCREDIST)\
@@ -134,32 +200,29 @@ clean:
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
-	$(MKDIR) $(DEST)
-	$(CP) $(DEST) $(SRC)
+	$(MKDIR) $(DOCUMENTBUILDER)
+	$(CP) $(DOCUMENTBUILDER) $(SRC)
 
-	echo "Done" > $@
+# 	echo "Done" > $@
 
-$(RPM):	$(PRODUCT_NAME_LOW)
-	sed 's/{{PRODUCT_VERSION}}/'$(PRODUCT_VERSION)'/'  -i rpm/$(PACKAGE_NAME).spec
-	sed 's/{{BUILD_NUMBER}}/'${BUILD_NUMBER}'/'  -i rpm/$(PACKAGE_NAME).spec
-	sed 's/{{BUILD_ARCH}}/'${RPM_ARCH}'/'  -i rpm/$(PACKAGE_NAME).spec
+$(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
+	$(CD) rpm && rpmbuild -bb \
+	--define '_topdir $(RPM_BUILD_DIR)' \
+	--define '_package_name $(PACKAGE_NAME)' \
+	--define '_product_version $(PRODUCT_VERSION)' \
+	--define '_build_number $(BUILD_NUMBER)' \
+	--define '_publisher_name $(PUBLISHER_NAME)' \
+	--define '_publisher_url $(PUBLISHER_URL)' \
+	--define '_support_mail $(SUPPORT_MAIL)' \
+	--define '_rpm_arch $(RPM_ARCH)' \
+	--define '_db_prefix $(DB_PREFIX)' \
+	$(PACKAGE_NAME).spec
 
-ifeq ($(RPM_ARCH),i386)
-	sed 's/lib64/lib/'  -i rpm/$(PACKAGE_NAME).spec
-endif
+$(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
+	$(CD) deb && dpkg-buildpackage -b -uc -us
 
-	$(CD) rpm && rpmbuild -bb --define "_topdir $(RPM_BUILD_DIR)" $(PACKAGE_NAME).spec
-
-$(DEB): $(PRODUCT_NAME_LOW)
-	sed 's/{{PACKAGE_VERSION}}/'$(PACKAGE_VERSION)'/'  -i deb/$(PACKAGE_NAME)/debian/changelog
-	sed "s/{{BUILD_ARCH}}/"$(DEB_ARCH)"/"  -i deb/$(PACKAGE_NAME)/debian/control
-
-	$(CD) deb/$(PACKAGE_NAME) && dpkg-buildpackage -b -uc -us
-
-$(EXE): $(ISXDL)
-	sed "s/"{{PRODUCT_VERSION}}"/"$(PRODUCT_VERSION)"/" -i exe/common.iss
-	sed "s/"{{BUILD_NUMBER}}"/"$(BUILD_NUMBER)"/" -i exe/common.iss
-	cd exe && $(ISCC) $(PACKAGE_NAME)-$(WIN_ARCH).iss
+$(EXE): $(WIN_DEPS) $(ISXDL)
+	cd exe && $(ISCC) //DsAppVerShort=$(PRODUCT_VERSION) //DsAppBuildNumber=$(BUILD_NUMBER) //Qp $(PACKAGE_NAME).iss
 
 $(ISXDL):
 	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
@@ -236,22 +299,19 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
 
-M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
-
-ifeq ($(OS),Windows_NT)
-	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
-		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
-
-	endif
-endif
-
-# M4_PARAMS += -D M4_ARCH_URI="$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/$(notdir $(ARCHIVE))"
-
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
+
+common/documentbuilder/bin/$(PACKAGE_NAME) : common/documentbuilder/bin/documentbuilder
+	ln -srf $< $@
+
+deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
+	mv -f $< $@
+
+rpm/$(PACKAGE_NAME).spec : rpm/package.spec
+	cp -f $< $@
+
+exe/$(PACKAGE_NAME).iss : exe/package.iss
+	mv -f $< $@
 
 deploy: $(DEPLOY)
