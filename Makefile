@@ -119,7 +119,7 @@ CORE_PATH := ../core
 DOCUMENTBUILDER := common/documentbuilder/home
 DOCUMENTBUILDER_BIN := common/documentbuilder/bin
 
-ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
+ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
 
 LINUX_DEPS += common/documentbuilder/bin/documentbuilder
