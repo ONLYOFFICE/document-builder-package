@@ -1,6 +1,3 @@
-; Uncomment the line below to be able to compile the script from within the IDE.
-;#define COMPILE_FROM_IDE
-
 #ifndef sBrandingFolder
   #define sBrandingFolder   '..\branding'
 #endif
@@ -120,7 +117,7 @@ MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 
-#ifndef COMPILE_FROM_IDE
+#ifndef ENABLE_SIGNING
 SignTool=byparam $p
 #endif
 

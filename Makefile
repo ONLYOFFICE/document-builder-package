@@ -222,7 +222,13 @@ $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
 
 $(EXE): $(WIN_DEPS) $(ISXDL)
-	cd exe && $(ISCC) //DsAppVerShort=$(PRODUCT_VERSION) //DsAppBuildNumber=$(BUILD_NUMBER) //Qp $(PACKAGE_NAME).iss
+	cd exe && $(ISCC) \
+		//DsAppVerShort=$(PRODUCT_VERSION) \
+		//DsAppBuildNumber=$(BUILD_NUMBER) \
+ifdef ENABLE_SIGNING
+		//DENABLE_SIGNING=1 \
+endif
+		//Qp $(PACKAGE_NAME).iss
 
 $(ISXDL):
 	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
