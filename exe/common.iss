@@ -117,7 +117,7 @@ MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 
-#ifndef ENABLE_SIGNING
+#ifdef ENABLE_SIGNING
 SignTool=byparam $p
 #endif
 
