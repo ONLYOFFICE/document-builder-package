@@ -119,7 +119,15 @@ CORE_PATH := ../core
 DOCUMENTBUILDER := common/documentbuilder/home
 DOCUMENTBUILDER_BIN := common/documentbuilder/bin
 
-ISCC := iscc //Qp //S"byparam=signtool.exe sign /v /s My /n Ascensio /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
+ISCC := iscc 
+ISCC_PARAMS += //Qp
+ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
+ISCC_PARAMS += //DsAppVerShort=$(PRODUCT_VERSION)
+ISCC_PARAMS += //DsAppBuildNumber=$(BUILD_NUMBER)
+ifdef ENABLE_SIGNING
+ISCC_PARAMS += //DENABLE_SIGNING=1
+endif
+
 ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
 
 LINUX_DEPS += common/documentbuilder/bin/documentbuilder
@@ -222,7 +230,7 @@ $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) deb && dpkg-buildpackage -b -uc -us
 
 $(EXE): $(WIN_DEPS) $(ISXDL)
-	cd exe && $(ISCC) //DsAppVerShort=$(PRODUCT_VERSION) //DsAppBuildNumber=$(BUILD_NUMBER) //Qp $(PACKAGE_NAME).iss
+	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
 
 $(ISXDL):
 	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
