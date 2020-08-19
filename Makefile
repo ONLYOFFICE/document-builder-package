@@ -233,7 +233,7 @@ $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
 
 $(ISXDL):
-	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
+	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll
 
 $(RPM_REPO_DATA): $(RPM)
 	$(RM) $(RPM_REPO)
