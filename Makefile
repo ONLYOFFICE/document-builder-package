@@ -307,6 +307,10 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
 
+% : %.sh.m4
+	m4 $(M4_PARAMS)	$< > $@
+	chmod +x $@
+
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
 
