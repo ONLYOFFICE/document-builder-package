@@ -233,6 +233,7 @@ $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
 
 $(ISXDL):
+	$(TOUCH) $(ISXDL) && \
 	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll
 
 $(RPM_REPO_DATA): $(RPM)
