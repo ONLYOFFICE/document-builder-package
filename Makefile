@@ -4,7 +4,7 @@ TOUCH := touch
 MKDIR := mkdir -p
 CP := cp -rf -t
 RM := rm -rfv
-CURL := curl -L -o
+CURL := curl -L -f --retry 5 --retry-all-errors -o
 
 COMPANY_NAME ?= ONLYOFFICE
 PRODUCT_NAME ?= DocumentBuilder
