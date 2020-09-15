@@ -198,6 +198,7 @@ clean:
 		$(DEB_PACKAGE_DIR)/*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
+		$(ISXDL)\
 		$(VCREDIST)\
 		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
 		$(ARCH_REPO)\
