@@ -4,7 +4,7 @@ TOUCH := touch
 MKDIR := mkdir -p
 CP := cp -rf -t
 RM := rm -rfv
-CURL := curl -L -f --retry 5 --retry-all-errors -o
+CURL := curl -fLo
 
 COMPANY_NAME ?= ONLYOFFICE
 PRODUCT_NAME ?= DocumentBuilder
@@ -235,7 +235,11 @@ $(EXE): $(WIN_DEPS) $(ISXDL)
 
 $(ISXDL):
 	$(TOUCH) $(ISXDL) && \
-	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll
+	for i in {1..5}; do \
+		$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll && \
+		break || \
+		sleep 30s; \
+	done
 
 $(RPM_REPO_DATA): $(RPM)
 	$(RM) $(RPM_REPO)
