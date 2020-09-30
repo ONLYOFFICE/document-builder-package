@@ -4,7 +4,7 @@ TOUCH := touch
 MKDIR := mkdir -p
 CP := cp -rf -t
 RM := rm -rfv
-CURL := curl -L -o
+CURL := curl -fLo
 
 COMPANY_NAME ?= ONLYOFFICE
 PRODUCT_NAME ?= DocumentBuilder
@@ -198,6 +198,7 @@ clean:
 		$(DEB_PACKAGE_DIR)/*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
+		$(ISXDL)\
 		$(VCREDIST)\
 		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
 		$(ARCH_REPO)\
@@ -233,7 +234,12 @@ $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
 
 $(ISXDL):
-	$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/master/isxdlfiles/isxdl.dll
+	$(TOUCH) $(ISXDL) && \
+	for i in {1..5}; do \
+		$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll && \
+		break || \
+		sleep 30s; \
+	done
 
 $(RPM_REPO_DATA): $(RPM)
 	$(RM) $(RPM_REPO)
@@ -306,6 +312,10 @@ $(ARCH_REPO_DATA): $(ARCHIVE)
 
 %-$(ARCH_SUFFIX).zip : %
 	7z a -y $@ $<
+
+% : %.sh.m4
+	m4 $(M4_PARAMS)	$< > $@
+	chmod +x $@
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
