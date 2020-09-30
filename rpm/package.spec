@@ -7,7 +7,7 @@ Group: Applications/File
 URL: %{_publisher_url}
 Vendor: %{_publisher_name}
 Packager: %{_publisher_name} <%{_support_mail}>
-Requires: glibc, libcurl, libxml2, dejavu-lgc-sans-fonts, dejavu-lgc-sans-mono-fonts, dejavu-lgc-serif-fonts, dejavu-sans-fonts, dejavu-sans-mono-fonts, dejavu-serif-fonts, libreoffice-opensymbol-fonts
+Requires: glibc, libcurl, libxml2, dejavu-sans-fonts, dejavu-sans-mono-fonts, dejavu-serif-fonts, libreoffice-opensymbol-fonts
 BuildArch: %{_rpm_arch}
 AutoReq: no
 AutoProv: no
