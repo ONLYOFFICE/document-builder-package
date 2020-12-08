@@ -70,49 +70,24 @@ EXE_BUILD_DIR = exe
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := .
 
-ARCH_REPO := $(PWD)/repo-arch
-ARCH_REPO_DATA := $(ARCH_REPO)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
-
-REPO_NAME := repo
-DEB_REPO := $(PWD)/$(REPO_NAME)
-DEB_REPO_DATA := $(DEB_REPO)/Packages.gz
-
-RPM_REPO := $(PWD)/repo-rpm
-RPM_REPO_DATA := $(RPM_REPO)/repodata
-
-EXE_REPO := repo-exe
-EXE_REPO_DATA := $(EXE_REPO)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
-
-RPM_REPO_OS_NAME := centos
-RPM_REPO_OS_VER := 7
-RPM_REPO_DIR := $(RPM_REPO_OS_NAME)/$(RPM_REPO_OS_VER)
-
-DEB_REPO_OS_NAME := ubuntu
-DEB_REPO_OS_VER := trusty
-DEB_REPO_DIR := $(DEB_REPO_OS_NAME)/$(DEB_REPO_OS_VER)
-
-EXE_REPO_DIR = windows
-
-ARCH_REPO_DIR := linux
-
 INDEX_HTML := index.html
 
 S3_BUCKET ?= repo-doc-onlyoffice-com
-
-ifeq ($(OS),Windows_NT)
-	ARCH_REPO_DIR := $(EXE_REPO_DIR)
-	DEPLOY := $(EXE_REPO_DATA) $(INDEX_HTML)
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		DEPLOY := $(RPM_REPO_DATA) $(DEB_REPO_DATA) $(INDEX_HTML)
-	endif
-endif
+REPO_BRANCH ?= develop
 
 ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
+
+RPM_URI := packages/rpm/$(REPO_BRANCH)/$(notdir $(RPM))
+DEB_URI := packages/deb/$(REPO_BRANCH)/$(notdir $(DEB))
+EXE_URI := packages/exe/$(REPO_BRANCH)/$(notdir $(EXE))
+ifeq ($(PLATFORM),linux)
+	ARCH_URI := packages/tar/$(REPO_BRANCH)/$(notdir $(ARCHIVE))
+else ifeq ($(PLATFORM),win)
+	ARCH_URI := packages/exe/$(REPO_BRANCH)/$(notdir $(ARCHIVE))
+endif
 
 CORE_PATH := ../core
 
@@ -160,18 +135,12 @@ M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
 M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
 M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
 M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
+M4_PARAMS += -D M4_DEB_URI="$(DEB_URI)"
+M4_PARAMS += -D M4_RPM_URI="$(RPM_URI)"
+M4_PARAMS += -D M4_EXE_URI="$(EXE_URI)"
+# M4_PARAMS += -D M4_ARCH_URI="$(ARCH_URI)"
 
-ifeq ($(OS),Windows_NT)
-	M4_PARAMS += -D M4_EXE_URI="$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/$(notdir $(EXE))"
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		M4_PARAMS += -D M4_DEB_URI="$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME)/$(notdir $(DEB))"
-		M4_PARAMS += -D M4_RPM_URI="$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/$(notdir $(RPM))"
-	endif
-endif
-
-.PHONY: all clean deb rpm exe deploy
+.PHONY: all clean deb rpm exe arch deploy deploy-deb deploy-rpm deploy-exe deploy-arch
 
 all: deb rpm arch
 
@@ -201,10 +170,6 @@ clean:
 		$(ISXDL)\
 		$(VCREDIST)\
 		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
-		$(ARCH_REPO)\
-		$(DEB_REPO)\
-		$(RPM_REPO)\
-		$(EXE_REPO)\
 		$(INDEX_HTML)\
 		$(PRODUCT_NAME_LOW)
 
@@ -241,72 +206,6 @@ $(ISXDL):
 		sleep 30s; \
 	done
 
-$(RPM_REPO_DATA): $(RPM)
-	$(RM) $(RPM_REPO)
-	$(MKDIR) $(RPM_REPO)
-
-	$(CP) $(RPM_REPO) $(RPM)
-	createrepo -v $(RPM_REPO)
-
-	aws s3 sync \
-		$(RPM_REPO) \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/ \
-		--acl public-read --delete
-
-	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(RPM_ARCH)/  \
-		s3://repo-doc-onlyoffice-com/$(RPM_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/latest/$(RPM_ARCH)/ \
-		--acl public-read --delete
-
-$(DEB_REPO_DATA): $(DEB)
-	$(RM) $(DEB_REPO)
-	$(MKDIR) $(DEB_REPO)
-
-	$(CP) $(DEB_REPO) $(DEB)
-	dpkg-scanpackages -m $(REPO_NAME) /dev/null | gzip -9c > $(DEB_REPO_DATA)
-
-	aws s3 sync \
-		$(DEB_REPO) \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
-		--acl public-read --delete
-
-	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(DEB_ARCH)/$(REPO_NAME) \
-		s3://repo-doc-onlyoffice-com/$(DEB_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/latest/$(DEB_ARCH)/$(REPO_NAME) \
-		--acl public-read --delete
-
-$(EXE_REPO_DATA): $(EXE)
-	rm -rfv $(EXE_REPO)
-	mkdir -p $(EXE_REPO)
-
-	cp -rv $(EXE) $(EXE_REPO);
-
-	aws s3 sync \
-		$(EXE_REPO) \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/ \
-		--acl public-read --delete
-
-	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(WIN_ARCH)/  \
-		s3://repo-doc-onlyoffice-com/$(EXE_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/latest/$(WIN_ARCH)/ \
-		--acl public-read --delete
-
-$(ARCH_REPO_DATA): $(ARCHIVE)
-	rm -rfv $(ARCH_REPO)
-	mkdir -p $(ARCH_REPO)
-
-	cp -rv $(ARCHIVE) $(ARCH_REPO)
-
-	aws s3 sync \
-		$(ARCH_REPO) \
-		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/ \
-		--acl public-read --delete
-
-	aws s3 sync \
-		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/$(PACKAGE_VERSION)/$(ARCH_SUFFIX)/  \
-		s3://repo-doc-onlyoffice-com/$(ARCH_REPO_DIR)/$(PACKAGE_NAME)/origin/$(GIT_BRANCH)/latest/$(ARCH_SUFFIX)/ \
-		--acl public-read --delete
-
 %-$(ARCH_SUFFIX).tar.gz : %
 	tar -zcvf $@ $<
 
@@ -331,5 +230,30 @@ rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 
 exe/$(PACKAGE_NAME).iss : exe/package.iss
 	mv -f $< $@
+
+deploy-deb: $(DEB)
+	aws s3 cp --no-progress --acl public-read \
+		$(DEB) s3://$(S3_BUCKET)/$(DEB_URI)
+
+deploy-rpm: $(RPM)
+	aws s3 cp --no-progress --acl public-read \
+		$(RPM) s3://$(S3_BUCKET)/$(RPM_URI)
+
+deploy-exe: $(EXE)
+	aws s3 cp --no-progress --acl public-read \
+		$(EXE) s3://$(S3_BUCKET)/$(EXE_URI)
+
+deploy-arch: $(ARCHIVE)
+	aws s3 cp --no-progress --acl public-read \
+		$(ARCHIVE) s3://$(S3_BUCKET)/$(ARCHIVE_URI)
+
+ifeq ($(PLATFORM),linux)
+DEPLOY += deploy-deb
+DEPLOY += deploy-rpm
+else ifeq ($(PLATFORM),win)
+DEPLOY += deploy-exe
+endif
+# DEPLOY += deploy-arch
+DEPLOY += $(INDEX_HTML)
 
 deploy: $(DEPLOY)
