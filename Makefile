@@ -73,20 +73,20 @@ DEB_PACKAGE_DIR := .
 INDEX_HTML := index.html
 
 S3_BUCKET ?= repo-doc-onlyoffice-com
-REPO_BRANCH ?= develop
+RELEASE_BRANCH ?= unstable
 
 ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 
-RPM_URI := packages/rpm/$(REPO_BRANCH)/$(notdir $(RPM))
-DEB_URI := packages/deb/$(REPO_BRANCH)/$(notdir $(DEB))
-EXE_URI := packages/exe/$(REPO_BRANCH)/$(notdir $(EXE))
+RPM_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/centos/$(notdir $(RPM))
+DEB_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/ubuntu/$(notdir $(DEB))
+EXE_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(EXE))
 ifeq ($(PLATFORM),linux)
-	ARCH_URI := packages/tar/$(REPO_BRANCH)/$(notdir $(ARCHIVE))
+	ARCH_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/linux/$(notdir $(ARCHIVE))
 else ifeq ($(PLATFORM),win)
-	ARCH_URI := packages/exe/$(REPO_BRANCH)/$(notdir $(ARCHIVE))
+	ARCH_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(ARCHIVE))
 endif
 
 CORE_PATH := ../core
