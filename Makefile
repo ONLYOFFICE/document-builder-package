@@ -70,8 +70,6 @@ EXE_BUILD_DIR = exe
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := .
 
-INDEX_HTML := index.html
-
 S3_BUCKET ?= repo-doc-onlyoffice-com
 RELEASE_BRANCH ?= unstable
 
@@ -88,6 +86,8 @@ ifeq ($(PLATFORM),linux)
 else ifeq ($(PLATFORM),win)
 	ARCH_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(ARCHIVE))
 endif
+
+DEPLOY_JSON = deploy.json
 
 CORE_PATH := ../core
 
@@ -134,11 +134,6 @@ M4_PARAMS += -D M4_PUBLISHER_URL='$(PUBLISHER_URL)'
 M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
 M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
 M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
-M4_PARAMS += -D M4_S3_BUCKET=$(S3_BUCKET)
-M4_PARAMS += -D M4_DEB_URI=$(DEB_URI)
-M4_PARAMS += -D M4_RPM_URI=$(RPM_URI)
-M4_PARAMS += -D M4_EXE_URI=$(EXE_URI)
-# M4_PARAMS += -D M4_ARCH_URI=$(ARCH_URI)
 
 .PHONY: all clean deb rpm exe arch deploy deploy-deb deploy-rpm deploy-exe deploy-arch
 
@@ -170,7 +165,7 @@ clean:
 		$(ISXDL)\
 		$(VCREDIST)\
 		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
-		$(INDEX_HTML)\
+		$(DEPLOY_JSON)\
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
@@ -247,6 +242,38 @@ deploy-arch: $(ARCHIVE)
 	aws s3 cp --no-progress --acl public-read \
 		$(ARCHIVE) s3://$(S3_BUCKET)/$(ARCHIVE_URI)
 
+$(DEPLOY_JSON):
+	echo '{}' > $@
+	cat <<< $$(jq '. + { \
+		product: "$(PRODUCT_NAME_LOW)", \
+		version: "$(PRODUCT_VERSION)", \
+		build: "$(BUILD_NUMBER)" \
+		}' $@) > $@
+ifeq ($(PLATFORM), win)
+	cat <<< $$(jq '.items += [{ \
+		platform: "windows", \
+		title: "Windows 64-bit", \
+		path: "$(EXE_URI)" }]' $@) > $@
+# 	cat <<< $$(jq '.items += [{ \`
+# 		platform: "windows", \
+# 		title: "Windows Portable 64-bit", \
+# 		path: "$(ARCH_URI)" }]' $@) > $@
+endif
+ifeq ($(PLATFORM), linux)
+	cat <<< $$(jq '.items += [{ \
+		platform: "ubuntu", \
+		title: "Debian 8 9 10, Ubuntu 14 16 18 20 and derivatives", \
+		path: "$(DEB_URI)" }]' $@) > $@
+	cat <<< $$(jq '.items += [{ \
+		platform: "centos", \
+		title: "Centos 7, Redhat 7, Fedora latest and derivatives", \
+		path: "$(RPM_URI)" }]' $@) > $@
+# 	cat <<< $$(jq '.items += [{ \
+# 		platform: "linux", \
+# 		title: "Linux portable", \
+# 		path: "$(ARCH_URI)" }]' $@) > $@
+endif
+
 ifeq ($(PLATFORM),linux)
 DEPLOY += deploy-deb
 DEPLOY += deploy-rpm
@@ -254,6 +281,5 @@ else ifeq ($(PLATFORM),win)
 DEPLOY += deploy-exe
 endif
 # DEPLOY += deploy-arch
-DEPLOY += $(INDEX_HTML)
 
-deploy: $(DEPLOY)
+deploy: $(DEPLOY) $(DEPLOY_JSON)
