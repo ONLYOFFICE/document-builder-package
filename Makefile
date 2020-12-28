@@ -242,36 +242,44 @@ deploy-arch: $(ARCHIVE)
 	aws s3 cp --no-progress --acl public-read \
 		$(ARCHIVE) s3://$(S3_BUCKET)/$(ARCHIVE_URI)
 
+comma := ,
+json_edit = cp -f $(1) $(1).tmp; jq $(2) $(1).tmp > $(1); rm -f $(1).tmp
+
 $(DEPLOY_JSON):
 	echo '{}' > $@
-	cat <<< $$(jq '. + { \
-		product: "$(PRODUCT_NAME_LOW)", \
-		version: "$(PRODUCT_VERSION)", \
-		build: "$(BUILD_NUMBER)" \
-		}' $@) > $@
+	$(call json_edit, $@, '. + { \
+		product:  "$(PRODUCT_NAME_LOW)"$(comma) \
+		version:  "$(PRODUCT_VERSION)"$(comma) \
+		build:    "$(BUILD_NUMBER)" \
+	}')
 ifeq ($(PLATFORM), win)
-	cat <<< $$(jq '.items += [{ \
-		platform: "windows", \
-		title: "Windows 64-bit", \
-		path: "$(EXE_URI)" }]' $@) > $@
-# 	cat <<< $$(jq '.items += [{ \`
-# 		platform: "windows", \
-# 		title: "Windows Portable 64-bit", \
-# 		path: "$(ARCH_URI)" }]' $@) > $@
+	$(call json_edit, $@, '.items += [{ \
+		platform: "windows"$(comma) \
+		title:    "Windows 64-bit"$(comma) \
+		path:     "$(EXE_URI)" \
+	}]')
+# 	$(call json_edit, $@, '.items += [{ \
+# 		platform: "windows"$(comma) \
+# 		title:    "Windows Portable 64-bit"$(comma) \
+# 		path:     "$(ARCH_URI)" \
+# 	}]')
 endif
 ifeq ($(PLATFORM), linux)
-	cat <<< $$(jq '.items += [{ \
-		platform: "ubuntu", \
-		title: "Debian 8 9 10, Ubuntu 14 16 18 20 and derivatives", \
-		path: "$(DEB_URI)" }]' $@) > $@
-	cat <<< $$(jq '.items += [{ \
-		platform: "centos", \
-		title: "Centos 7, Redhat 7, Fedora latest and derivatives", \
-		path: "$(RPM_URI)" }]' $@) > $@
-# 	cat <<< $$(jq '.items += [{ \
-# 		platform: "linux", \
-# 		title: "Linux portable", \
-# 		path: "$(ARCH_URI)" }]' $@) > $@
+	$(call json_edit, $@, '.items += [{ \
+		platform: "ubuntu"$(comma) \
+		title:    "Debian 8 9 10$(comma) Ubuntu 14 16 18 20 and derivatives"$(comma) \
+		path:     "$(DEB_URI)" \
+	}]')
+	$(call json_edit, $@, '.items += [{ \
+		platform: "centos"$(comma) \
+		title:    "Centos 7$(comma) Redhat 7$(comma) Fedora latest and derivatives"$(comma) \
+		path:     "$(RPM_URI)" \
+	}]')
+# 	$(call json_edit, $@, '.items += [{ \
+# 		platform: "linux"$(comma) \
+# 		title:    "Linux portable"$(comma) \
+# 		path:     "$(ARCH_URI)" \
+# 	}]')
 endif
 
 ifeq ($(PLATFORM),linux)
