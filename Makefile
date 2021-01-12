@@ -255,12 +255,12 @@ $(DEPLOY_JSON):
 ifeq ($(PLATFORM), win)
 	$(call json_edit, $@, '.items += [{ \
 		platform: "windows"$(comma) \
-		title:    "Windows 64-bit"$(comma) \
+		title:    "Windows $(ARCHITECTURE)-bit"$(comma) \
 		path:     "$(EXE_URI)" \
 	}]')
 # 	$(call json_edit, $@, '.items += [{ \
 # 		platform: "windows"$(comma) \
-# 		title:    "Windows Portable 64-bit"$(comma) \
+# 		title:    "Windows Portable $(ARCHITECTURE)-bit"$(comma) \
 # 		path:     "$(ARCH_URI)" \
 # 	}]')
 endif
