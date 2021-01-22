@@ -185,6 +185,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_support_mail $(SUPPORT_MAIL)' \
 	--define '_rpm_arch $(RPM_ARCH)' \
 	--define '_db_prefix $(DB_PREFIX)' \
+	--define '_binary_payload w7.xzdio' \
 	$(PACKAGE_NAME).spec
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
