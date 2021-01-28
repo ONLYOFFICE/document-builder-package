@@ -54,23 +54,24 @@ else
 	endif
 endif
 
-ARCHIVE_PACKAGE_DIR := ..
-
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
 DEB_BUILD_DIR := $(PWD)/deb
+TAR_BUILD_DIR := $(PWD)/tar
 EXE_BUILD_DIR = exe
+ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := .
+TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
 S3_BUCKET ?= repo-doc-onlyoffice-com
 RELEASE_BRANCH ?= unstable
 
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
-TAR := $(ARCHIVE_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
+TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
-ZIP := $(ARCHIVE_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
+ZIP := $(ZIP_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
 
 RPM_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/centos/$(notdir $(RPM))
 DEB_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/ubuntu/$(notdir $(DEB))
@@ -157,8 +158,8 @@ clean:
 		$(EXE_BUILD_DIR)/*.exe\
 		$(ISXDL)\
 		$(VCREDIST)\
-		$(ARCHIVE_PACKAGE_DIR)/*.zip\
-		$(ARCHIVE_PACKAGE_DIR)/*.tar.gz\
+		$(TAR_BUILD_DIR)\
+		$(ZIP_BUILD_DIR)\
 		$(DEPLOY_JSON)\
 		$(PRODUCT_NAME_LOW)
 
@@ -196,11 +197,14 @@ $(ISXDL):
 		sleep 30s; \
 	done
 
-$(TAR): $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	tar -zcvf $@ $<
+$(TAR): $(PRODUCT_NAME_LOW)
+	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
+	$(CP) $(TAR_BUILD_DIR)/documentbuilder $(DOCUMENTBUILDER)/*
+	tar -czf $@ --owner=root --group=root -C $(TAR_BUILD_DIR) documentbuilder
 
-$(ZIP): $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	7z a -y $@ $<
+$(ZIP): $(PRODUCT_NAME_LOW)
+	$(MKDIR) $(dir $@)
+	7z a -y $@ ./$(DOCUMENTBUILDER)/*
 
 % : %.sh.m4
 	m4 $(M4_PARAMS)	$< > $@
