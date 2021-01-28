@@ -121,7 +121,7 @@ DOCUMENTBUILDER_BIN := common/documentbuilder/bin
 
 ISCC := iscc 
 ISCC_PARAMS += //Qp
-ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.verisign.com/scripts/timstamp.dll \$$f"
+ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.digicert.com \$$f"
 ISCC_PARAMS += //DsAppVerShort=$(PRODUCT_VERSION)
 ISCC_PARAMS += //DsAppBuildNumber=$(BUILD_NUMBER)
 ifdef ENABLE_SIGNING
