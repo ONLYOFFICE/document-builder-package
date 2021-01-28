@@ -29,63 +29,55 @@ ifeq ($(UNAME_M),x86_64)
 	RPM_ARCH := x86_64
 	DEB_ARCH := amd64
 	WIN_ARCH := x64
-	ARCH_SUFFIX := x64
+	TAR_ARCH := x86_64
 	ARCHITECTURE := 64
 endif
 ifneq ($(filter %86,$(UNAME_M)),)
 	RPM_ARCH := i386
 	DEB_ARCH := i386
 	WIN_ARCH := x86
-	ARCH_SUFFIX := x86
+	TAR_ARCH := i386
 	ARCHITECTURE := 32
 endif
 
 ifeq ($(OS),Windows_NT)
 	PLATFORM := win
-	EXEC_EXT := .exe
-	SHELL_EXT := .bat
-	SHARED_EXT := .dll
-	ARCH_EXT := .zip
 	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/$(COMPANY_NAME)/$(PRODUCT_NAME)/*
 	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		PLATFORM := linux
-		SHARED_EXT := .so*
-		SHELL_EXT := .sh
-		ARCH_EXT := .tar.gz
 		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
 		DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
 		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 	endif
 endif
 
-ARCH_PACKAGE_DIR := ..
-
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
 DEB_BUILD_DIR := $(PWD)/deb
+TAR_BUILD_DIR := $(PWD)/tar
 EXE_BUILD_DIR = exe
+ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 DEB_PACKAGE_DIR := .
+TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
 S3_BUCKET ?= repo-doc-onlyoffice-com
 RELEASE_BRANCH ?= unstable
 
-ARCHIVE := $(ARCH_PACKAGE_DIR)/$(PRODUCT_NAME_LOW)-$(PRODUCT_VERSION)-$(ARCH_SUFFIX)$(ARCH_EXT)
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
+TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
+ZIP := $(ZIP_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
 
 RPM_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/centos/$(notdir $(RPM))
 DEB_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/ubuntu/$(notdir $(DEB))
+TAR_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/linux/$(notdir $(TAR))
 EXE_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(EXE))
-ifeq ($(PLATFORM),linux)
-	ARCH_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/linux/$(notdir $(ARCHIVE))
-else ifeq ($(PLATFORM),win)
-	ARCH_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(ARCHIVE))
-endif
+ZIP_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(ZIP))
 
 DEPLOY_JSON = deploy.json
 
@@ -135,17 +127,19 @@ M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
 M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
 M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
 
-.PHONY: all clean deb rpm exe arch deploy deploy-deb deploy-rpm deploy-exe deploy-arch
+.PHONY: all clean deb rpm tar exe zip deploy deploy-deb deploy-rpm deploy-tar deploy-exe deploy-zip
 
-all: deb rpm arch
-
-arch: $(ARCHIVE)
+all: deb rpm tar
 
 rpm: $(RPM)
 
 deb: $(DEB)
 
+tar: $(TAR)
+
 exe: $(EXE)
+
+zip: $(ZIP)
 
 clean:
 	$(RM) $(LINUX_DEPS)\
@@ -164,7 +158,8 @@ clean:
 		$(EXE_BUILD_DIR)/*.exe\
 		$(ISXDL)\
 		$(VCREDIST)\
-		$(ARCH_PACKAGE_DIR)/*$(ARCH_EXT)\
+		$(TAR_BUILD_DIR)\
+		$(ZIP_BUILD_DIR)\
 		$(DEPLOY_JSON)\
 		$(PRODUCT_NAME_LOW)
 
@@ -202,11 +197,14 @@ $(ISXDL):
 		sleep 30s; \
 	done
 
-%-$(ARCH_SUFFIX).tar.gz : %
-	tar -zcvf $@ $<
+$(TAR): $(PRODUCT_NAME_LOW)
+	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
+	$(CP) $(TAR_BUILD_DIR)/documentbuilder $(DOCUMENTBUILDER)/*
+	tar -czf $@ --owner=root --group=root -C $(TAR_BUILD_DIR) documentbuilder
 
-%-$(ARCH_SUFFIX).zip : %
-	7z a -y $@ $<
+$(ZIP): $(PRODUCT_NAME_LOW)
+	$(MKDIR) $(dir $@)
+	7z a -y $@ ./$(DOCUMENTBUILDER)/*
 
 % : %.sh.m4
 	m4 $(M4_PARAMS)	$< > $@
@@ -235,13 +233,17 @@ deploy-rpm: $(RPM)
 	aws s3 cp --no-progress --acl public-read \
 		$(RPM) s3://$(S3_BUCKET)/$(RPM_URI)
 
+deploy-tar: $(TAR)
+	aws s3 cp --no-progress --acl public-read \
+		$(TAR) s3://$(S3_BUCKET)/$(TAR_URI)
+
 deploy-exe: $(EXE)
 	aws s3 cp --no-progress --acl public-read \
 		$(EXE) s3://$(S3_BUCKET)/$(EXE_URI)
 
-deploy-arch: $(ARCHIVE)
+deploy-zip: $(ZIP)
 	aws s3 cp --no-progress --acl public-read \
-		$(ARCHIVE) s3://$(S3_BUCKET)/$(ARCHIVE_URI)
+		$(ZIP) s3://$(S3_BUCKET)/$(ZIP_URI)
 
 comma := ,
 json_edit = cp -f $(1) $(1).tmp; jq $(2) $(1).tmp > $(1); rm -f $(1).tmp
@@ -259,11 +261,11 @@ ifeq ($(PLATFORM), win)
 		title:    "Windows 64-bit"$(comma) \
 		path:     "$(EXE_URI)" \
 	}]')
-# 	$(call json_edit, $@, '.items += [{ \
-# 		platform: "windows"$(comma) \
-# 		title:    "Windows Portable 64-bit"$(comma) \
-# 		path:     "$(ARCH_URI)" \
-# 	}]')
+	$(call json_edit, $@, '.items += [{ \
+		platform: "windows"$(comma) \
+		title:    "Windows Portable 64-bit"$(comma) \
+		path:     "$(ZIP_URI)" \
+	}]')
 endif
 ifeq ($(PLATFORM), linux)
 	$(call json_edit, $@, '.items += [{ \
@@ -279,16 +281,17 @@ ifeq ($(PLATFORM), linux)
 # 	$(call json_edit, $@, '.items += [{ \
 # 		platform: "linux"$(comma) \
 # 		title:    "Linux portable"$(comma) \
-# 		path:     "$(ARCH_URI)" \
+# 		path:     "$(TAR_URI)" \
 # 	}]')
 endif
 
 ifeq ($(PLATFORM),linux)
 DEPLOY += deploy-deb
 DEPLOY += deploy-rpm
+# DEPLOY += deploy-tar
 else ifeq ($(PLATFORM),win)
 DEPLOY += deploy-exe
+DEPLOY += deploy-zip
 endif
-# DEPLOY += deploy-arch
 
 deploy: $(DEPLOY) $(DEPLOY_JSON)
