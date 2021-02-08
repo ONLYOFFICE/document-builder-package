@@ -9,7 +9,7 @@
 #define sSupportUrl \
 	'M4_SUPPORT_URL'
 #define sBrandingFolder \
-	'patsubst(M4_BRANDING_DIR,"/","\\")'
+	'esyscmd(cygpath -a -w M4_BRANDING_DIR)'
 #define sWinArch \
 	'M4_WIN_ARCH'
 
