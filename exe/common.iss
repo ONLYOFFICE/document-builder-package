@@ -44,7 +44,7 @@
 #endif
 
 #ifndef sAppCopyright
-  #define sAppCopyright     str("Copyright (C) 2016 " + sPublisherName)
+  #define sAppCopyright     str("Copyright (C) " + GetDateTimeString('yyyy',,) + " " + sPublisherName)
 #endif
 
 #ifndef sWinArch
