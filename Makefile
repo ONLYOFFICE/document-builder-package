@@ -61,7 +61,7 @@ EXE_BUILD_DIR = exe
 ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-DEB_PACKAGE_DIR := .
+DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
@@ -138,11 +138,10 @@ clean:
 		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)\
 		$(DEB_BUILD_DIR)/debian/files\
 		$(DEB_BUILD_DIR)/debian/*.debhelper.log\
-		$(DEB_BUILD_DIR)/debian/*.postrm.debhelper\
-		$(DEB_BUILD_DIR)/debian/*.substvars\
+		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)*\
 		$(DEB_PACKAGE_DIR)/*.deb\
-		$(DEB_PACKAGE_DIR)/*.changes\
-		$(DEB_PACKAGE_DIR)/*.buildinfo\
+		$(DEB_PACKAGE_DIR)/../*.changes\
+		$(DEB_PACKAGE_DIR)/../*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(ISXDL)\
@@ -172,7 +171,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(PACKAGE_NAME).spec
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	$(CD) deb && dpkg-buildpackage -b -uc -us
+	$(CD) deb && dpkg-buildpackage -b -uc -us --changes-option=-u.
 
 $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
