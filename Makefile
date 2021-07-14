@@ -61,25 +61,14 @@ EXE_BUILD_DIR = exe
 ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-DEB_PACKAGE_DIR := .
+DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
-
-S3_BUCKET ?= repo-doc-onlyoffice-com
-RELEASE_BRANCH ?= unstable
 
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 ZIP := $(ZIP_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
-
-RPM_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/centos/$(notdir $(RPM))
-DEB_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/ubuntu/$(notdir $(DEB))
-TAR_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/linux/$(notdir $(TAR))
-EXE_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(EXE))
-ZIP_URI := $(COMPANY_NAME_LOW)/$(RELEASE_BRANCH)/windows/$(notdir $(ZIP))
-
-DEPLOY_JSON = deploy.json
 
 CORE_PATH := ../core
 
@@ -127,7 +116,7 @@ M4_PARAMS += -D M4_SUPPORT_MAIL='$(SUPPORT_MAIL)'
 M4_PARAMS += -D M4_SUPPORT_URL='$(SUPPORT_URL)'
 M4_PARAMS += -D M4_BRANDING_DIR='$(abspath $(BRANDING_DIR))'
 
-.PHONY: all clean deb rpm tar exe zip deploy deploy-deb deploy-rpm deploy-tar deploy-exe deploy-zip
+.PHONY: all clean deb rpm tar exe zip packages
 
 all: deb rpm tar
 
@@ -149,18 +138,16 @@ clean:
 		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)\
 		$(DEB_BUILD_DIR)/debian/files\
 		$(DEB_BUILD_DIR)/debian/*.debhelper.log\
-		$(DEB_BUILD_DIR)/debian/*.postrm.debhelper\
-		$(DEB_BUILD_DIR)/debian/*.substvars\
+		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)*\
 		$(DEB_PACKAGE_DIR)/*.deb\
-		$(DEB_PACKAGE_DIR)/*.changes\
-		$(DEB_PACKAGE_DIR)/*.buildinfo\
+		$(DEB_PACKAGE_DIR)/../*.changes\
+		$(DEB_PACKAGE_DIR)/../*.buildinfo\
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(ISXDL)\
 		$(VCREDIST)\
 		$(TAR_BUILD_DIR)\
 		$(ZIP_BUILD_DIR)\
-		$(DEPLOY_JSON)\
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
@@ -184,7 +171,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(PACKAGE_NAME).spec
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	$(CD) deb && dpkg-buildpackage -b -uc -us
+	$(CD) deb && dpkg-buildpackage -b -uc -us --changes-option=-u.
 
 $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
@@ -225,73 +212,13 @@ rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 exe/$(PACKAGE_NAME).iss : exe/package.iss
 	mv -f $< $@
 
-deploy-deb: $(DEB)
-	aws s3 cp --no-progress --acl public-read \
-		$(DEB) s3://$(S3_BUCKET)/$(DEB_URI)
-
-deploy-rpm: $(RPM)
-	aws s3 cp --no-progress --acl public-read \
-		$(RPM) s3://$(S3_BUCKET)/$(RPM_URI)
-
-deploy-tar: $(TAR)
-	aws s3 cp --no-progress --acl public-read \
-		$(TAR) s3://$(S3_BUCKET)/$(TAR_URI)
-
-deploy-exe: $(EXE)
-	aws s3 cp --no-progress --acl public-read \
-		$(EXE) s3://$(S3_BUCKET)/$(EXE_URI)
-
-deploy-zip: $(ZIP)
-	aws s3 cp --no-progress --acl public-read \
-		$(ZIP) s3://$(S3_BUCKET)/$(ZIP_URI)
-
-comma := ,
-json_edit = cp -f $(1) $(1).tmp; jq $(2) $(1).tmp > $(1); rm -f $(1).tmp
-
-$(DEPLOY_JSON):
-	echo '{}' > $@
-	$(call json_edit, $@, '. + { \
-		product:  "$(PRODUCT_NAME_LOW)"$(comma) \
-		version:  "$(PRODUCT_VERSION)"$(comma) \
-		build:    "$(BUILD_NUMBER)" \
-	}')
-ifeq ($(PLATFORM), win)
-	$(call json_edit, $@, '.items += [{ \
-		platform: "windows"$(comma) \
-		title:    "Windows 64-bit"$(comma) \
-		path:     "$(EXE_URI)" \
-	}]')
-	$(call json_edit, $@, '.items += [{ \
-		platform: "windows"$(comma) \
-		title:    "Windows Portable 64-bit"$(comma) \
-		path:     "$(ZIP_URI)" \
-	}]')
-endif
-ifeq ($(PLATFORM), linux)
-	$(call json_edit, $@, '.items += [{ \
-		platform: "ubuntu"$(comma) \
-		title:    "Debian 8 9 10$(comma) Ubuntu 14 16 18 20 and derivatives"$(comma) \
-		path:     "$(DEB_URI)" \
-	}]')
-	$(call json_edit, $@, '.items += [{ \
-		platform: "centos"$(comma) \
-		title:    "Centos 7$(comma) Redhat 7$(comma) Fedora latest and derivatives"$(comma) \
-		path:     "$(RPM_URI)" \
-	}]')
-# 	$(call json_edit, $@, '.items += [{ \
-# 		platform: "linux"$(comma) \
-# 		title:    "Linux portable"$(comma) \
-# 		path:     "$(TAR_URI)" \
-# 	}]')
-endif
-
 ifeq ($(PLATFORM),linux)
-DEPLOY += deploy-deb
-DEPLOY += deploy-rpm
-# DEPLOY += deploy-tar
+PACKAGES += deb
+PACKAGES += rpm
+# PACKAGES += tar
 else ifeq ($(PLATFORM),win)
-DEPLOY += deploy-exe
-DEPLOY += deploy-zip
+PACKAGES += exe
+PACKAGES += zip
 endif
 
-deploy: $(DEPLOY) $(DEPLOY_JSON)
+packages: $(PACKAGES)

@@ -9,3 +9,6 @@
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info -l$$(pwd)/debian/M4_PACKAGE_NAME/opt/M4_DB_PREFIX:$$(pwd)/debian/M4_PACKAGE_NAME/opt/M4_DB_PREFIX/HtmlFileInternal
+
+override_dh_builddeb:
+	dh_builddeb --destdir=.
