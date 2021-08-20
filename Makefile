@@ -91,6 +91,9 @@ ISCC_PARAMS += //Qp
 ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.digicert.com \$$f"
 ISCC_PARAMS += //DsAppVerShort=$(PRODUCT_VERSION)
 ISCC_PARAMS += //DsAppBuildNumber=$(BUILD_NUMBER)
+ifeq ($(COMPANY_NAME), ONLYOFFICE)
+	ISCC_PARAMS += //D_ONLYOFFICE=1
+endif
 ifdef ENABLE_SIGNING
 ISCC_PARAMS += //DENABLE_SIGNING=1
 endif

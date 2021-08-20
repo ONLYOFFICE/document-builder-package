@@ -99,7 +99,7 @@ ArchitecturesAllowed      ={#sWinArch}
 DefaultGroupName          ={#sAppPath}
 WizardImageFile           ={#sBrandingFolder}\exe\res\dialogpicture.bmp
 WizardSmallImageFile      ={#sBrandingFolder}\exe\res\dialogicon.bmp
-LicenseFile               = .\LICENSE.rtf
+LicenseFile               ={#sBrandingFolder}\exe\res\LICENSE.rtf
 
 UsePreviousAppDir         = no
 DirExistsWarning          = no
@@ -122,26 +122,31 @@ SignTool=byparam $p
 #endif
 
 [Languages]
+#ifdef _ONLYOFFICE
 Name: "en"; MessagesFile: "compiler:Default.isl"
+#else
+Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "en"; MessagesFile: "compiler:Default.isl"
+#endif
 
 [CustomMessages]
 ;======================================================================================================
-Launch =Launch %1
-;ru.Launch =Запустить %1
+en.Launch =Launch %1
+ru.Launch =Запустить %1
 ;de.Launch =%1 starten
 ;fr.Launch =Lancer %1
 ;es.Launch =Ejecutar %1
 ;it.Launch =Eseguire %1
 ;======================================================================================================
-CreateDesktopIcon =Create %1 &desktop icon
-;ru.CreateDesktopIcon =Создать иконку %1 на &рабочем столе
+en.CreateDesktopIcon =Create %1 &desktop icon
+ru.CreateDesktopIcon =Создать иконку %1 на &рабочем столе
 ;de.CreateDesktopIcon =%1 &Desktop-Icon erstellen
 ;fr.CreateDesktopIcon =Crйer l'icфne du bureau pour %1
 ;es.CreateDesktopIcon =Crear %1 &icono en el escritorio
 ;it.CreateDesktopIcon =Creare un collegamento %1 sul &desktop
 ;======================================================================================================
-InstallAdditionalComponents =Installing additional system components. Please wait...
-;ru.InstallAdditionalComponents =Установка дополнительных системных компонентов. Пожалуйста, подождите...
+en.InstallAdditionalComponents =Installing additional system components. Please wait...
+ru.InstallAdditionalComponents =Установка дополнительных системных компонентов. Пожалуйста, подождите...
 ;de.InstallAdditionalComponents =Installation zusдtzlicher Systemkomponenten. Bitte warten...
 ;fr.InstallAdditionalComponents =L'installation des composants supplйmentaires du systиme. Attendez...
 ;es.InstallAdditionalComponents =Instalando componentes adicionales del sistema. Por favor espere...
@@ -154,22 +159,22 @@ InstallAdditionalComponents =Installing additional system components. Please wai
 ;es.AdditionalTasks =Tareas:
 ;it.AdditionalTasks =Compiti:
 ;======================================================================================================
-Uninstall =Uninstall
-;ru.Uninstall =Удаление
+en.Uninstall =Uninstall
+ru.Uninstall =Удаление
 ;de.Uninstall =Deinstallieren
 ;fr.Uninstall =Desinstaller
 ;es.Uninstall =Desinstalar
 ;it.Uninstall =Disinstalla
 ;======================================================================================================
-WarningWrongArchitecture =You are trying to install the %1-bit application version over the %2-bit version installed. Please uninstall the previous version first or download the correct version for installation.
-;ru.WarningWrongArchitecture =Вы устанавливаете %1-битную версию приложения на уже установленную %2-битную. Пожалуйста, удалите предыдущую версию приложения или скачайте подходящую.
+en.WarningWrongArchitecture =You are trying to install the %1-bit application version over the %2-bit version installed. Please uninstall the previous version first or download the correct version for installation.
+ru.WarningWrongArchitecture =Вы устанавливаете %1-битную версию приложения на уже установленную %2-битную. Пожалуйста, удалите предыдущую версию приложения или скачайте подходящую.
 ;de.WarningWrongArchitecture =Sie versuchen die %1-Bit-Version der Anwendung über die %2-Bit-Version, die schon installiert ist, zu installieren. Entfernen Sie bitte die Vorgängerversion zuerst oder laden Sie die richtige Version für die Installation herunter.
 ;fr.WarningWrongArchitecture =Vous essayez d'installer la version %1-bit sur la version %2-bit déjà installée. Veuillez désinstaller l'ancienne version d'abord ou télécharger la version correcte à installer.
 ;es.WarningWrongArchitecture =Usted está tratando de instalar la versión de la aplicación de %1 bits sobre la versión de %2 bits instalada. Por favor, desinstale la versión anterior primero o descargue la versión correcta para la instalación.
 ;it.Uninstall =Disinstalla
 ;======================================================================================================
-
-RunSamples =Generate samples documents
+en.RunSamples =Generate samples documents
+ru.RunSamples =Сгенерировать образцы документов
 
 [Files]
 Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
