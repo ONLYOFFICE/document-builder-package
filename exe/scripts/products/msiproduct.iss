@@ -1,4 +1,4 @@
-[Code]
+﻿[Code]
 #IFDEF UNICODE
     #DEFINE AW "W"
 #ELSE

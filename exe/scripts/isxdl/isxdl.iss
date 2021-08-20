@@ -1,4 +1,4 @@
-[Files]
+﻿[Files]
 Source: "scripts\isxdl\isxdl.dll"; Flags: dontcopy
 
 [Code]

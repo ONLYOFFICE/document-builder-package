@@ -1,4 +1,4 @@
-[Code]
+﻿[Code]
 function GetFullVersion(VersionMS, VersionLS: cardinal): string;
 var
 	version: string;
