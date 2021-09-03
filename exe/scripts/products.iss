@@ -1,44 +1,50 @@
-#include "isxdl\isxdl.iss"
+﻿#include "isxdl\isxdl.iss"
 
 [CustomMessages]
 DependenciesDir=MyProgramDependencies
 
 en.depdownload_msg=The following applications are required before setup can continue:%n%n%1%nDownload and install now?
-; de.depdownload_msg=Die folgenden Programme werden ben�tigt bevor das Setup fortfahren kann:%n%n%1%nJetzt downloaden und installieren?
-; fr.depdownload_msg=Les applications suivantes sont n�cessaires avant l'installation peut continuer:%n%n%1%nT�l�chargement et installer maintenant?
+ru.depdownload_msg=Для продолжения установки требуются следующие приложения:%n%n%1%nСкачать и установить их сейчас?
+; de.depdownload_msg=Die folgenden Programme werden benötigt bevor das Setup fortfahren kann:%n%n%1%nJetzt downloaden und installieren?
+; fr.depdownload_msg=Les applications suivantes sont nécessaires avant l'installation peut continuer:%n%n%1%nTéléchargement et installer maintenant?
 ; it.depdownload_msg=Le seguenti applicazioni sono necessari per continuare l'installazione:%n%n%1%nScarica ed installare ora?
-; nl.depdownload_msg=De volgende toepassingen zijn nodig v��r de installatie kunt doorgaan:%n%n%1%nDownload en installeer nu?
-; pl.depdownload_msg=Poni�sze aplikacje s� wymagane przed instalacj� aby m�c kontynuowa�:%n%n%1%nCzy pobra� je i zainstalowa� teraz?
+; nl.depdownload_msg=De volgende toepassingen zijn nodig vóór de installatie kunt doorgaan:%n%n%1%nDownload en installeer nu?
+; pl.depdownload_msg=Poniższe aplikacje są wymagane przed instalacją aby móc kontynuować:%n%n%1%nCzy pobrać je i zainstalować teraz?
 
 en.depdownload_memo_title=Download dependencies
-; de.depdownload_memo_title=Abh�ngigkeiten downloaden
-; fr.depdownload_memo_title=T�l�charger les d�pendances
+ru.depdownload_memo_title=Загрузить зависимости
+; de.depdownload_memo_title=Abhängigkeiten downloaden
+; fr.depdownload_memo_title=Télécharger les dépendances
 ; it.depdownload_memo_title=Scarica le dipendenze
 ; nl.depdownload_memo_title=Download afhankelijkheden
-; pl.depdownload_memo_title=Pobierz zale�no�ci
+; pl.depdownload_memo_title=Pobierz zależności
 
 en.depinstall_memo_title=Install dependencies
-; de.depinstall_memo_title=Abh�ngigkeiten installieren
-; fr.depinstall_memo_title=Installez les d�pendances
+ru.depinstall_memo_title=Установить зависимости
+; de.depinstall_memo_title=Abhängigkeiten installieren
+; fr.depinstall_memo_title=Installez les dépendances
 ; it.depinstall_memo_title=installare le dipendenze
 ; nl.depinstall_memo_title=Installeer afhankelijkheden
-; pl.depinstall_memo_title=Zainstaluj zale�no�ci
+; pl.depinstall_memo_title=Zainstaluj zależności
 
 en.depinstall_title=Installing dependencies
-; de.depinstall_title=Installiere Abh�ngigkeiten
-; fr.depinstall_title=Installation des d�pendances
+ru.depinstall_title=Установка зависимостей
+; de.depinstall_title=Installiere Abhängigkeiten
+; fr.depinstall_title=Installation des dépendances
 ; it.depinstall_title=installare le dipendenze
 ; nl.depinstall_title=Installeer afhankelijkheden
-; pl.depinstall_title=Instalowanie zale�no�ci
+; pl.depinstall_title=Instalowanie zależności
 
 en.depinstall_description=Please wait while Setup installs dependencies on your computer.
-; de.depinstall_description=Warten Sie bitte w�hrend Abh�ngigkeiten auf Ihrem Computer installiert wird.
-; fr.depinstall_description=S'il vous pla�t patienter pendant que le programme d'installation installe les d�pendances sur votre ordinateur.
+ru.depinstall_description=Пожалуйста, подождите, пока зависимости будут установлены.
+; de.depinstall_description=Warten Sie bitte während Abhängigkeiten auf Ihrem Computer installiert wird.
+; fr.depinstall_description=S'il vous plaît patienter pendant que le programme d'installation installe les dépendances sur votre ordinateur.
 ; it.depinstall_description=Per favore attendi che viene installato sul computer dipendenze.
 ; nl.depinstall_description=Een moment geduld aub Setup installeert afhankelijkheden op uw computer.
-; pl.depinstall_description=Instalator instaluje zale�no�ci na komputerze, czekaj.
+; pl.depinstall_description=Instalator instaluje zależności na komputerze, czekaj.
 
 en.depinstall_status=Installing %1...
+ru.depinstall_status=Установка %1...
 ; de.depinstall_status=Installiere %1...
 ; fr.depinstall_status=Installation %1...
 ; it.depinstall_status=installazione %1...
@@ -46,27 +52,33 @@ en.depinstall_status=Installing %1...
 ; pl.depinstall_status=Instalowanie %1....
 
 en.depinstall_missing=%1 must be installed before setup can continue. Please install %1 and run Setup again.
+ru.depinstall_missing=%1 должен быть установлен прежде чем установка может быть продолжена. Пожалуйста, установите %1 и повторите установку.
 ; de.depinstall_missing=%1 muss installiert werden bevor das Setup fortfahren kann. Bitte installieren Sie %1 und starten Sie das Setup erneut.
-; fr.depinstall_missing=%1 doit �tre install� avant l'installation peut continuer. S'il vous pla�t installer %1 et ex�cutez � nouveau le programme d'installation.
+; fr.depinstall_missing=%1 doit ętre installé avant l'installation peut continuer. S'il vous plaît installer %1 et exécutez ŕ nouveau le programme d'installation.
 ; it.depinstall_missing=%1 deve essere installato per continuare l'installazione. Si prega di installare %1 ed eseguire nuovamente l'installazione.
-; nl.depinstall_missing=%1 moet worden ge�nstalleerd v��r de installatie kan worden voortgezet. Installeer %1 en voer Setup opnieuw uit.
-; pl.depinstall_missing=%1 musi by� zainstalowany przed instalacj�, aby mog�a ona by� kontynuowana. Zainstaluj %1 i ponownie uruchom program instalacyjny.
+; nl.depinstall_missing=%1 moet worden geďnstalleerd vóór de installatie kan worden voortgezet. Installeer %1 en voer Setup opnieuw uit.
+; pl.depinstall_missing=%1 musi być zainstalowany przed instalacją, aby mogła ona być kontynuowana. Zainstaluj %1 i ponownie uruchom program instalacyjny.
 
 en.depinstall_error=An error occured while installing the dependencies. Please restart the computer and run the setup again or install the following dependencies manually:%n
-; de.depinstall_error=Ein Fehler ist w�hrend der Installation der Abgh�ngigkeiten aufgetreten. Bitte starten Sie den Computer neu und f�hren Sie das Setup erneut aus oder installieren Sie die folgenden Abh�ngigkeiten per Hand:%n
-; fr.depinstall_error=Une erreur est survenue lors de l'installation des d�pendances . S'il vous pla�t red�marrer l'ordinateur et ex�cuter � nouveau le programme d'installation ou installer les d�pendances suivantes manuellement:%n
-; it.depinstall_error=� verificato un errore durante l'installazione le dipendenze . Si prega di riavviare il computer ed eseguire nuovamente la configurazione o installare le seguenti dipendenze manualmente:%n
+ru.depinstall_error=В процессе установки зависимостей произошла ошибка. Пожалуйста, перезапустите компьютер и повторите установку, либо установите следующие зависимости вручную:%n
+; de.depinstall_error=Ein Fehler ist während der Installation der Abghängigkeiten aufgetreten. Bitte starten Sie den Computer neu und führen Sie das Setup erneut aus oder installieren Sie die folgenden Abhängigkeiten per Hand:%n
+; fr.depinstall_error=Une erreur est survenue lors de l'installation des dépendances . S'il vous plaît redémarrer l'ordinateur et exécuter ŕ nouveau le programme d'installation ou installer les dépendances suivantes manuellement:%n
+; it.depinstall_error=Č verificato un errore durante l'installazione le dipendenze . Si prega di riavviare il computer ed eseguire nuovamente la configurazione o installare le seguenti dipendenze manualmente:%n
 ; nl.depinstall_error=Er is een fout opgetreden tijdens het installeren van de afhankelijkheden. Gelieve de computer opnieuw op en voer de installatie opnieuw uit of de volgende afhankelijkheden handmatig installeren:%n
-; pl.depinstall_error=Wyst�pi� b��d podczas instalowania zale�no�ci. Uruchom ponownie komputer, a nast�pnie ponownie uruchom program instalacyjny lub r�cznie zainstaluj nast�puj�ce programy:%n
+; pl.depinstall_error=Wystąpił błąd podczas instalowania zależności. Uruchom ponownie komputer, a następnie ponownie uruchom program instalacyjny lub ręcznie zainstaluj następujące programy:%n
 
 en.isxdl_langfile=
+ru.isxdl_langfile=russian.ini
 ; de.isxdl_langfile=german.ini
 ; fr.isxdl_langfile=french3.ini
 ; it.isxdl_langfile=italian.ini
 ; nl.isxdl_langfile=dutch.ini
 ; pl.isxdl_langfile=polish.ini
 
-; [Files]
+#ifndef _ONLYOFFICE
+[Files]
+Source: "scripts\isxdl\russian.ini"; Flags: dontcopy
+#endif
 ; Source: "scripts\isxdl\german.ini"; Flags: dontcopy
 ; Source: "scripts\isxdl\french3.ini"; Flags: dontcopy
 ; Source: "scripts\isxdl\italian.ini"; Flags: dontcopy
