@@ -1,4 +1,4 @@
-#define sCompanyName \
+﻿#define sCompanyName \
 	'M4_COMPANY_NAME'
 #define sProductName \
 	'M4_PRODUCT_NAME'

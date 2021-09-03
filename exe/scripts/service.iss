@@ -1,4 +1,4 @@
-[Code]
+﻿[Code]
 
 procedure Nssm(Command: String; SrvName: String; Param: String);
 var

@@ -1,4 +1,4 @@
-[Code]
+﻿[Code]
 function stringtoversion(var temp: String): Integer;
 var
 	part: String;
