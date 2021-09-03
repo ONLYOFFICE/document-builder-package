@@ -20,7 +20,7 @@ SUPPORT_MAIL ?= support@onlyoffice.com
 PRODUCT_VERSION ?= 0.0.0
 BUILD_NUMBER ?= 0
 
-BRANDING_DIR ?= ./branding
+BRANDING_DIR ?= .
 
 PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
 
@@ -80,6 +80,9 @@ ISCC_PARAMS += //Qp
 ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.digicert.com \$$f"
 ISCC_PARAMS += //DsAppVerShort=$(PRODUCT_VERSION)
 ISCC_PARAMS += //DsAppBuildNumber=$(BUILD_NUMBER)
+ifeq ($(COMPANY_NAME), ONLYOFFICE)
+	ISCC_PARAMS += //D_ONLYOFFICE=1
+endif
 ifdef ENABLE_SIGNING
 ISCC_PARAMS += //DENABLE_SIGNING=1
 endif

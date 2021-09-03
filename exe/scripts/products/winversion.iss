@@ -1,4 +1,4 @@
-[Code]
+﻿[Code]
 var
 	WindowsVersion: TWindowsVersion;
 
