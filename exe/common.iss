@@ -116,6 +116,7 @@ SetupMutex                = ASC
 MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
+LanguageDetectionMethod   = none
 
 #ifdef ENABLE_SIGNING
 SignTool=byparam $p
@@ -124,6 +125,7 @@ SignTool=byparam $p
 [Languages]
 #ifdef _ONLYOFFICE
 Name: "en"; MessagesFile: "compiler:Default.isl"
+Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 #else
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "en"; MessagesFile: "compiler:Default.isl"
