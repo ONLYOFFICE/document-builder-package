@@ -1,105 +1,49 @@
-﻿#ifndef sBrandingFolder
-  #define sBrandingFolder   '..'
+﻿; -- Document Builder Installer --
+
+#ifndef BRANDING_DIR
+  #define BRANDING_DIR '.'
 #endif
 
-#define sBrandingFile str(sBrandingFolder + "\exe\branding.iss")
-#if FileExists(sBrandingFile)
-  #include str(sBrandingFile)
+#include BRANDING_DIR + '\defines.iss'
+
+#ifndef VERSION
+  #define VERSION '0.0.0.0'
+#endif
+#define ARCH 'x64'
+#define NAME_EXE_OUT 'docbuilder.exe'
+#ifndef BASE_DIR
+  #define BASE_DIR '..\base'
+#endif
+#ifndef OUTPUT_DIR
+  #define OUTPUT_DIR '.'
+#endif
+#ifndef OUTPUT_BASENAME
+  #define OUTPUT_BASENAME sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH
 #endif
 
-#ifndef sCompanyName
-  #define sCompanyName      'ONLYOFFICE'
-#endif
-
-#ifndef sIntCompanyName
-  #define sIntCompanyName   str(sCompanyName)
-#endif
-
-#ifndef sProductName
-  #define sProductName      'DocumentBuilder'
-#endif
-
-#ifndef sIntProductName
-  #define sIntProductName   str(sProductName)
-#endif
-
-#ifndef sPackageName
-  #define sPackageName      str(LowerCase(sCompanyName) + "-" + LowerCase(sProductName))
-#endif
-
-#ifndef sPublisherName
-  #define sPublisherName    'Ascensio System SIA'
-#endif
-
-#ifndef sPublisherUrl
-  #define sPublisherUrl     'https://www.onlyoffice.com/'
-#endif
-
-#ifndef sSupportURL
-  #define sSupportURL       str(sPublisherUrl + "support.aspx")
-#endif
-
-#ifndef URL_HELP
-  #define URL_HELP          'http://helpcenter.onlyoffice.com/developers/document-builder/index.aspx'
-#endif
-
-#ifndef sAppCopyright
-  #define sAppCopyright     str("Copyright (C) " + GetDateTimeString('yyyy',,) + " " + sPublisherName)
-#endif
-
-#ifndef sWinArch
-  #define sWinArch          'x64'
-#endif
-
-#if str(sWinArch) == 'x64'
-  #define sPlatform         'win_64'
-#elif str(sWinArch) == 'x86'
-  #define sPlatform         'win_32'
-#endif
-
-#ifndef sAppName
-  #define sAppName          str(sCompanyName + " " + sProductName)
-#endif
-
-#ifndef sAppPath
-  #define sAppPath          str(sIntCompanyName + "\" + sIntProductName)
-#endif
-
-#define NAME_EXE_OUT        'docbuilder.exe'
-
-#ifndef sAppVerShort
-  #define sAppVerShort      '0.0.0'
-#endif
-
-#ifndef sAppBuildNumber
-  #define sAppBuildNumber   '0'
-#endif
-
-#ifndef sAppVersion
-  #define sAppVersion       str(sAppVerShort + '.' + sAppBuildNumber)
+#if FileExists(BRANDING_DIR + '\branding.iss')
+  #include BRANDING_DIR + '\branding.iss')
 #endif
 
 [Setup]
 AppName                   ={#sAppName}
-AppVerName                ={#sAppName} {#sAppVerShort}
-AppVersion                ={#sAppVersion}
-VersionInfoVersion        ={#sAppVersion}
-OutputBaseFileName        ={#sPackageName}-{#sAppVersion}-{#sWinArch}
+AppVerName                ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
+AppVersion                ={#VERSION}
+VersionInfoVersion        ={#VERSION}
+OutputBaseFileName        ={#OUTPUT_BASENAME}
 
 AppPublisher              ={#sPublisherName}
 AppPublisherURL           ={#sPublisherURL}
 AppSupportURL             ={#sSupportURL}
-AppCopyright              ={#sAppCopyright}
+AppCopyright              ={#sCopyright}
 
-ArchitecturesAllowed      ={#sWinArch}
-#if str(sWinArch) == 'x64'
-  ArchitecturesInstallIn64BitMode=x64
-#endif
+ArchitecturesAllowed      =x64
+ArchitecturesInstallIn64BitMode=x64
 
 DefaultGroupName          ={#sAppPath}
-WizardImageFile           ={#sBrandingFolder}\exe\res\dialogpicture.bmp
-WizardSmallImageFile      ={#sBrandingFolder}\exe\res\dialogicon.bmp
-LicenseFile               ={#sBrandingFolder}\exe\res\LICENSE.rtf
+WizardImageFile           ={#BRANDING_DIR}\res\dialogpicture.bmp
+WizardSmallImageFile      ={#BRANDING_DIR}\res\dialogicon.bmp
+LicenseFile               ={#BRANDING_DIR}\res\LICENSE.rtf
 
 UsePreviousAppDir         = no
 DirExistsWarning          = no
@@ -108,7 +52,7 @@ DisableProgramGroupPage   = yes
 DisableWelcomePage        = no
 AllowNoIcons              = yes
 UninstallDisplayIcon      = {app}\{#NAME_EXE_OUT}
-OutputDir                 = .\
+OutputDir                 = {#OUTPUT_DIR}
 Compression               = lzma
 PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
@@ -117,8 +61,10 @@ MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 LanguageDetectionMethod   = none
+;ShowUndisplayableLanguages = true
+;UsePreviousLanguage=no
 
-#ifdef ENABLE_SIGNING
+#ifdef SIGN
 SignTool=byparam $p
 #endif
 
@@ -179,17 +125,17 @@ en.RunSamples =Generate samples documents
 ru.RunSamples =Сгенерировать образцы документов
 
 [Files]
-Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
-Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\docbuilder.com.dll;    DestDir: {app}; Flags: ignoreversion regserver
+Source: {#BASE_DIR}\*; DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: {#BASE_DIR}\docbuilder.com.dll; DestDir: {app}; Flags: ignoreversion regserver
 
-Source: {#sBrandingFolder}\exe\res\license.htm;               DestDir: {app};
-Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Flags: isreadme;
+Source: {#BRANDING_DIR}\res\license.htm; DestDir: {app};
+Source: {#BRANDING_DIR}\res\readme.txt; DestDir: {app}; Flags: isreadme;
 
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
 Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
 Name: {group}\Samples;          Filename: {app}\samples.bat;  WorkingDir: {app};
-Name: {group}\Help;             Filename: {#URL_HELP};
+Name: {group}\Help;             Filename: {#sHelpURL};
 Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 
 [Run]
