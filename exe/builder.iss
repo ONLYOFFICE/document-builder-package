@@ -47,7 +47,7 @@ LicenseFile               ={#BRANDING_DIR}\res\LICENSE.rtf
 
 UsePreviousAppDir         = no
 DirExistsWarning          = no
-DefaultDirName            =C:\{#sAppPath}
+DefaultDirName            ={pf}\{#sAppPath}
 DisableProgramGroupPage   = yes
 DisableWelcomePage        = no
 AllowNoIcons              = yes
