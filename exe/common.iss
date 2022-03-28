@@ -205,6 +205,7 @@ Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; 
 #include "scripts\products\msiproduct.iss"
 #include "scripts\products\vcredist2010sp1.iss"
 #include "scripts\products\vcredist2013.iss"
+#include "scripts\products\vcredist2022.iss"
 
 [Code]
 function InitializeSetup(): Boolean;
@@ -214,6 +215,7 @@ begin
   
   vcredist2010();
   vcredist2013();
+  vcredist2022('14');
 
   Result := true;
 end;
