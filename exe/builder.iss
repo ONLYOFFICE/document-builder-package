@@ -57,7 +57,6 @@ Compression               = lzma
 PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
 SetupMutex                = ASC
-MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 LanguageDetectionMethod   = none
@@ -149,8 +148,7 @@ Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; 
 #include "scripts\products\fileversion.iss"
 
 #include "scripts\products\msiproduct.iss"
-#include "scripts\products\vcredist2010sp1.iss"
-#include "scripts\products\vcredist2013.iss"
+#include "scripts\products\vcredist2022.iss"
 
 [Code]
 function InitializeSetup(): Boolean;
@@ -158,8 +156,7 @@ begin
   // initialize windows version
   initwinversion();
   
-  vcredist2010();
-  vcredist2013();
+  vcredist2022('14');
 
   Result := true;
 end;
