@@ -113,7 +113,6 @@ Compression               = lzma
 PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
 SetupMutex                = ASC
-MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 LanguageDetectionMethod   = none
