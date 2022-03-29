@@ -19,7 +19,7 @@ const
 procedure vcredist2022(minVersion: string);
 begin
 	if (not IsIA64()) then begin
-		if (not msiproductupgrade(GetString(vcredist2022_upgradecode, vcredist2022_upgradecode_x64, ''), minVersion)) then
+		if (not msiproduct(GetString(vcredist2022_upgradecode, vcredist2022_upgradecode_x64, ''))) then
 			AddProduct('vcredist2022' + GetArchitectureString() + '.exe',
 				'/passive /norestart',
 				CustomMessage('vcredist2022_title' + GetArchitectureString()),
