@@ -16,7 +16,7 @@ const
 	vcredist2022_upgradecode = '{5720EC03-F26F-40B7-980C-50B5D420B5DE}';
 	vcredist2022_upgradecode_x64 = '{A181A302-3F6D-4BAD-97A8-A426A6499D78}';
 
-procedure vcredist2022(minVersion: string);
+procedure vcredist2022();
 begin
 	if (not IsIA64()) then begin
 		if (not msiproduct(GetString(vcredist2022_upgradecode, vcredist2022_upgradecode_x64, ''))) then
