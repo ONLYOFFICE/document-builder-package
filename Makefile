@@ -131,6 +131,10 @@ all: deb rpm tar
 
 rpm: $(RPM)
 
+rpm_aarch64 : ARCHITECTURE = arm64
+rpm_aarch64 : RPM_ARCH = aarch64
+rpm_aarch64 : $(RPM)
+
 deb: $(DEB)
 
 tar: $(TAR)
@@ -167,7 +171,7 @@ $(PRODUCT_NAME_LOW):
 	chmod +x $@
 
 $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	$(CD) rpm && rpmbuild -bb \
+	$(CD) rpm && rpmbuild -bb --target $(RPM_ARCH) \
 	--define '_topdir $(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
 	--define '_product_version $(PRODUCT_VERSION)' \
@@ -175,7 +179,6 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_publisher_name $(PUBLISHER_NAME)' \
 	--define '_publisher_url $(PUBLISHER_URL)' \
 	--define '_support_mail $(SUPPORT_MAIL)' \
-	--define '_rpm_arch $(RPM_ARCH)' \
 	--define '_db_prefix $(DB_PREFIX)' \
 	--define '_binary_payload w7.xzdio' \
 	$(PACKAGE_NAME).spec
