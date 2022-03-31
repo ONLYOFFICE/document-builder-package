@@ -171,7 +171,7 @@ $(PRODUCT_NAME_LOW):
 	chmod +x $@
 
 $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	$(CD) rpm && rpmbuild -bb --target $(RPM_ARCH) \
+	$(CD) rpm && rpmbuild -bb \
 	--define '_topdir $(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
 	--define '_product_version $(PRODUCT_VERSION)' \
@@ -181,6 +181,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_support_mail $(SUPPORT_MAIL)' \
 	--define '_db_prefix $(DB_PREFIX)' \
 	--define '_binary_payload w7.xzdio' \
+	--target $(RPM_ARCH) \
 	$(PACKAGE_NAME).spec
 
 deb/build/debian/% : deb/template/%
