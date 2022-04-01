@@ -174,8 +174,6 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 ;es.WarningWrongArchitecture =Usted está tratando de instalar la versión de la aplicación de %1 bits sobre la versión de %2 bits instalada. Por favor, desinstale la versión anterior primero o descargue la versión correcta para la instalación.
 ;it.Uninstall =Disinstalla
 ;======================================================================================================
-en.RunSamples =Generate samples documents
-ru.RunSamples =Сгенерировать образцы документов
 
 [Files]
 Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
@@ -187,12 +185,10 @@ Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Fl
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
 Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
-Name: {group}\Samples;          Filename: {app}\samples.bat;  WorkingDir: {app};
 Name: {group}\Help;             Filename: {#URL_HELP};
 Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 
 [Run]
-Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; Flags: postinstall nowait;
 
 ; shared code for installing the products
 #include "scripts\products.iss"
