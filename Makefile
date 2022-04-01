@@ -24,7 +24,7 @@ BRANDING_DIR ?= .
 
 PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
 
-UNAME_M := $(shell uname -m)
+UNAME_M ?= $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
 	RPM_ARCH := x86_64
 	DEB_ARCH := amd64
@@ -38,6 +38,12 @@ ifneq ($(filter %86,$(UNAME_M)),)
 	WIN_ARCH := x86
 	TAR_ARCH := i386
 	ARCHITECTURE := 32
+endif
+ifneq ($(filter aarch%,$(UNAME_M)),)
+	RPM_ARCH := aarch64
+	DEB_ARCH := arm64
+	TAR_ARCH := aarch64
+	ARCHITECTURE := arm64
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -184,7 +190,7 @@ deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
 	mkdir -pv $(@D) && m4 $(M4_PARAMS) $< > $@
 
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	cd deb/build && dpkg-buildpackage -b -uc -us
+	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
 $(EXE): $(WIN_DEPS) $(ISXDL)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
