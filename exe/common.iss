@@ -204,6 +204,9 @@ Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; 
 #include "scripts\products\msiproduct.iss"
 #include "scripts\products\vcredist2022.iss"
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\sdkjs"
+
 [Code]
 function InitializeSetup(): Boolean;
 begin
