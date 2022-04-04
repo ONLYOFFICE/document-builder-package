@@ -182,7 +182,6 @@ Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\docbuilder.com.dll;    De
 Source: {#sBrandingFolder}\exe\res\license.htm;               DestDir: {app};
 Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Flags: isreadme;
 
-Source: "{tmp}\vc_redist.{#sWinArch}.exe"; DestDir: "{app}"; Flags: external
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
 Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
@@ -240,6 +239,7 @@ begin
     case CurPageID of
       wpReady: 
         begin
+          if() 
           DownloadPage.Clear;
           DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
           DownloadPage.Show;
