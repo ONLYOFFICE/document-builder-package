@@ -212,7 +212,7 @@ begin
   // initialize windows version
   initwinversion();
   
-  vcredist2022();
+  //vcredist2022();
 
   Result := true;
 end;
@@ -230,6 +230,8 @@ begin
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  ResultCode: Integer;
 begin
   Result := true;
   if WizardSilent() = false then
@@ -252,10 +254,21 @@ begin
                 Result := False;
               end;
             finally
+
+              Exec(
+                '>',
+                'start' + ExpandConstant('{tmp}\vcredist.{#sWinArch}.exe'),
+                '',
+                SW_SHOW,
+                EwWaitUntilTerminated,
+                ResultCode);
+
               DownloadPage.Hide;
-            end;
+            end
           end else
-        end;
+            Result := True;
+        end
+      end
     end;
-  end;
+  end.
 end;
