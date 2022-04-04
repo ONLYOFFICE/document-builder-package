@@ -204,6 +204,9 @@ Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 Type: filesandordirs; Name: "{app}\sdkjs"
 
 [Code]
+var
+  DownloadPage: TDownloadWizardPage;
+
 function InitializeSetup(): Boolean;
 begin
   // initialize windows version
@@ -214,13 +217,28 @@ begin
   Result := true;
 end;
 
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if Progress = ProgressMax then
+    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
+  Result := True;
+end;
+
+procedure InitializeWizard;
+begin
+  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := true;
   if WizardSilent() = false then
   begin
     case CurPageID of
-      wpReady: Result := DownloadDependency();
+      wpReady: 
+        begin
+          Result := checkVCRedist2022();
+        end;
     end;
   end;
 end;
