@@ -237,7 +237,24 @@ begin
     case CurPageID of
       wpReady: 
         begin
-          Result := checkVCRedist2022();
+          DownloadPage.Clear;
+          DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
+          DownloadPage.Show;
+            try
+              try
+                DownloadPage.Download; // This downloads the files to {tmp}
+                Result := True;
+              except
+                if DownloadPage.AbortedByUser then
+                  Log('Aborted by user.')
+                else
+                  SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+                Result := False;
+              end;
+            finally
+              DownloadPage.Hide;
+            end;
+          end else
         end;
     end;
   end;
