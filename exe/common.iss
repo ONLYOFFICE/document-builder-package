@@ -232,6 +232,7 @@ end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ResultCode: Integer;
+  ResultString: String;
 begin
   Result := true;
   if WizardSilent() = false then
@@ -239,7 +240,8 @@ begin
     case CurPageID of
       wpReady: 
         begin
-          if() 
+          if RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A181A302-3F6D-4BAD-97A8-A426A6499D78}', '', ResultString) then
+        begin
           DownloadPage.Clear;
           DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
           DownloadPage.Show;
@@ -268,6 +270,7 @@ begin
             end
           end else
             Result := True;
+        end
         end
       end
     end;
