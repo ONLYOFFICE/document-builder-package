@@ -237,14 +237,14 @@ var
   UpgradeCode: String;
   Path: String;
 begin
-  Result := True;
+  Result := true;
   if Is64BitInstallMode then
   begin
     UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; //x64
     Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
     if RegKeyExists(HKLM, Path) then
     begin
-      Result := False;
+      Result := false;
     end;
   end
   else
@@ -253,7 +253,7 @@ begin
     Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
     if RegKeyExists(HKLM, Path) then
     begin
-      Result := False;
+      Result := false;
     end;
   end;
 end;
@@ -262,8 +262,8 @@ function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ResultCode: Integer;
 begin
-  Result := True;
-  if WizardSilent() = False then
+  Result := true;
+  if WizardSilent() = false then
   begin
     case CurPageID of
       wpReady: 
