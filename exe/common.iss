@@ -226,7 +226,10 @@ end;
 
 procedure InitializeWizard;
 begin
-  DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), @OnDownloadProgress);
+  DownloadPage := CreateDownloadPage(
+                    SetupMessage(msgWizardPreparing),
+                    SetupMessage(msgPreparingDesc),
+                    @OnDownloadProgress);
 end;
 
 function checkVCRedist2022(): Boolean;
@@ -247,12 +250,12 @@ begin
   else
   begin
     UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; //x86
-    if RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{' + UpgradeCode + '}') then
+    Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
+    if RegKeyExists(HKLM, Path) then
     begin
       Result := False;
     end;
   end;
-  
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -264,22 +267,24 @@ begin
   begin
     case CurPageID of
       wpReady: 
+      begin
+        if checkVCRedist2022() then
         begin
-          if checkVCRedist2022() then
-          begin
-            DownloadPage.Clear;
-            DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
-            DownloadPage.Show;
-            DownloadPage.Download;
-            Exec(
-              '>',
-              ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
-              '',
-              SW_SHOW,
-              EwWaitUntilTerminated,
-              ResultCode);
-            DownloadPage.Hide;
-          end;
+          DownloadPage.Clear;
+          DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
+          DownloadPage.Show;
+          DownloadPage.Download;
+
+          Exec(
+            '>',
+            ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
+            '',
+            SW_SHOW,
+            EwWaitUntilTerminated,
+            ResultCode);
+
+          DownloadPage.Hide;
+        end;
       end;
     end;
   end;
