@@ -260,7 +260,7 @@ begin
 
               Exec(
                 '>',
-                ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe',
+                ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
                 '',
                 SW_SHOW,
                 EwWaitUntilTerminated,
