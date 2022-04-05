@@ -232,23 +232,27 @@ end;
 function checkVCRedist2022(): Boolean;
 var
   UpgradeCode: String;
+  Path: String;
 begin
+  Result := True;
   if Is64BitInstallMode then
   begin
     UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; //x64
-    if not RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{' + UpgradeCode + '}') then
+    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
+    if RegKeyExists(HKLM, Path) then
     begin
-      Result := True;
+      Result := False;
     end;
   end
   else
   begin
     UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; //x86
-    if not RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{' + UpgradeCode + '}') then
+    if RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{' + UpgradeCode + '}') then
     begin
-      Result := True;
+      Result := False;
     end;
   end;
+  
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -261,31 +265,22 @@ begin
     case CurPageID of
       wpReady: 
         begin
-          if not checkVCRedist2022() = True then
+          if checkVCRedist2022() then
           begin
             DownloadPage.Clear;
             DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
             DownloadPage.Show;
-              try
-                DownloadPage.Download;
-                Result := True;
-              finally
-
-                Exec(
-                  '>',
-                  ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
-                  '',
-                  SW_SHOW,
-                  EwWaitUntilTerminated,
-                  ResultCode);
-
-                DownloadPage.Hide;
-              end
-            end else
-              Result := True;
-          end
-        end
-      end
+            DownloadPage.Download;
+            Exec(
+              '>',
+              ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
+              '',
+              SW_SHOW,
+              EwWaitUntilTerminated,
+              ResultCode);
+            DownloadPage.Hide;
+          end;
+      end;
     end;
-  end.
+  end;
 end;
