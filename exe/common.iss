@@ -254,7 +254,6 @@ end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ResultCode: Integer;
-  ResultString: String;
 begin
   Result := true;
   if WizardSilent() = false then
@@ -264,35 +263,27 @@ begin
         begin
           if not checkVCRedist2022() = True then
           begin
-          DownloadPage.Clear;
-          DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
-          DownloadPage.Show;
-            try
+            DownloadPage.Clear;
+            DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
+            DownloadPage.Show;
               try
-                DownloadPage.Download; // This downloads the files to {tmp}
+                DownloadPage.Download;
                 Result := True;
-              except
-                if DownloadPage.AbortedByUser then
-                  Log('Aborted by user.')
-                else
-                  SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
-                Result := False;
-              end;
-            finally
+              finally
 
-              Exec(
-                '>',
-                ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
-                '',
-                SW_SHOW,
-                EwWaitUntilTerminated,
-                ResultCode);
+                Exec(
+                  '>',
+                  ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
+                  '',
+                  SW_SHOW,
+                  EwWaitUntilTerminated,
+                  ResultCode);
 
-              DownloadPage.Hide;
-            end
-          end else
-            Result := True;
-        end
+                DownloadPage.Hide;
+              end
+            end else
+              Result := True;
+          end
         end
       end
     end;
