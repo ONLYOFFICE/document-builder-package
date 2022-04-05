@@ -262,7 +262,9 @@ function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ResultCode: Integer;
 begin
-  Result := true;
+  Result := True;
+  if WizardSilent() = False then
+  begin
     case CurPageID of
       wpReady: 
       begin
@@ -285,4 +287,5 @@ begin
         end;
       end;
     end;
+  end;
 end;
