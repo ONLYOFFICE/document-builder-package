@@ -240,8 +240,8 @@ begin
     case CurPageID of
       wpReady: 
         begin
-          if RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A181A302-3F6D-4BAD-97A8-A426A6499D78}', '', ResultString) then
-        begin
+          if not RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A181A302-3F6D-4BAD-97A8-A426A6499D78}') then
+          begin
           DownloadPage.Clear;
           DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
           DownloadPage.Show;
