@@ -212,7 +212,7 @@ begin
   // initialize windows version
   initwinversion();
   
-  //vcredist2022();
+  vcredist2022();
 
   Result := true;
 end;
@@ -263,8 +263,6 @@ var
   ResultCode: Integer;
 begin
   Result := true;
-  if WizardSilent() = false then
-  begin
     case CurPageID of
       wpReady: 
       begin
@@ -287,5 +285,4 @@ begin
         end;
       end;
     end;
-  end;
 end;
