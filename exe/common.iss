@@ -248,9 +248,9 @@ begin
     Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
   end;
   if RegKeyExists(HKLM, Path) then
-    begin
-      Result := false;
-    end;
+  begin
+    Result := false;
+  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
