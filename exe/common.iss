@@ -238,24 +238,19 @@ var
   Path: String;
 begin
   Result := true;
+  //x86
+  UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; 
+  Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
   if Is64BitInstallMode then
   begin
-    UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; //x64
-    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
-    if RegKeyExists(HKLM, Path) then
-    begin
-      Result := false;
-    end;
-  end
-  else
-  begin
-    UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; //x86
-    Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
-    if RegKeyExists(HKLM, Path) then
-    begin
-      Result := false;
-    end;
+    //x64
+    UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; 
+    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
   end;
+  if RegKeyExists(HKLM, Path) then
+    begin
+      Result := false;
+    end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
