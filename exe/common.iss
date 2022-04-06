@@ -221,7 +221,7 @@ function OnDownloadProgress(const Url, FileName: String; const Progress, Progres
 begin
   if Progress = ProgressMax then
     Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
-  Result := True;
+  Result := true;
 end;
 
 procedure InitializeWizard;
@@ -266,7 +266,9 @@ begin
         if checkVCRedist2022() then
         begin
           DownloadPage.Clear;
-          DownloadPage.Add('https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe', 'vcredist.{#sWinArch}.exe', '');
+          DownloadPage.Add(
+            'https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe',
+            'vcredist.{#sWinArch}.exe', '');
           DownloadPage.Show;
           DownloadPage.Download;
 
