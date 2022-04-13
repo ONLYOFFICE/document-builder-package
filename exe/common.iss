@@ -212,8 +212,6 @@ begin
   // initialize windows version
   initwinversion();
   
-  vcredist2022();
-
   Result := true;
 end;
 
