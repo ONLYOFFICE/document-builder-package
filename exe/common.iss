@@ -188,18 +188,6 @@ Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
 Name: {group}\Help;             Filename: {#URL_HELP};
 Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 
-[Run]
-
-; shared code for installing the products
-#include "scripts\products.iss"
-; helper functions
-#include "scripts\products\stringversion.iss"
-#include "scripts\products\winversion.iss"
-#include "scripts\products\fileversion.iss"
-
-#include "scripts\products\msiproduct.iss"
-#include "scripts\products\vcredist2022.iss"
-
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\sdkjs"
 
@@ -209,11 +197,6 @@ var
 
 function InitializeSetup(): Boolean;
 begin
-  // initialize windows version
-  initwinversion();
-  
-  vcredist2022();
-
   Result := true;
 end;
 

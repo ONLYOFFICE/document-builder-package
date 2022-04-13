@@ -91,8 +91,6 @@ ifdef ENABLE_SIGNING
 ISCC_PARAMS += //DENABLE_SIGNING=1
 endif
 
-ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
-
 LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
 
 DEB_DEPS += deb/build/debian/source/format
@@ -196,16 +194,8 @@ deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
-$(EXE): $(WIN_DEPS) $(ISXDL)
+$(EXE): $(WIN_DEPS)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
-
-$(ISXDL):
-	$(TOUCH) $(ISXDL) && \
-	for i in {1..5}; do \
-		$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll && \
-		break || \
-		sleep 30s; \
-	done
 
 $(TAR): $(PRODUCT_NAME_LOW)
 	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
