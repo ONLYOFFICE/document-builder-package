@@ -195,7 +195,7 @@ $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
 $(EXE): $(WIN_DEPS)
-	cd exe && $(ISCC_PARAMS) $(PACKAGE_NAME).iss
+	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
 
 $(TAR): $(PRODUCT_NAME_LOW)
 	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
