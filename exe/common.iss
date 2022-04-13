@@ -196,7 +196,7 @@ var
   DownloadPage: TDownloadWizardPage;
 
 function InitializeSetup(): Boolean;
-begin 
+begin
   Result := true;
 end;
 
