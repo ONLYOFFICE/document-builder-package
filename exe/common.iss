@@ -113,7 +113,6 @@ Compression               = lzma
 PrivilegesRequired        = admin
 ;ChangesEnvironment        = yes
 SetupMutex                = ASC
-MinVersion                =0,5.0.2195
 AppMutex                  = TEAMLAB
 DEPCompatible             = no
 LanguageDetectionMethod   = none
@@ -175,8 +174,6 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 ;es.WarningWrongArchitecture =Usted está tratando de instalar la versión de la aplicación de %1 bits sobre la versión de %2 bits instalada. Por favor, desinstale la versión anterior primero o descargue la versión correcta para la instalación.
 ;it.Uninstall =Disinstalla
 ;======================================================================================================
-en.RunSamples =Generate samples documents
-ru.RunSamples =Сгенерировать образцы документов
 
 [Files]
 Source: ..\..\build_tools\out\{#sPlatform}\{#sAppPath}\*;    DestDir: {app}; Flags: ignoreversion recursesubdirs;
@@ -188,43 +185,87 @@ Source: {#sBrandingFolder}\exe\res\readme.txt;                DestDir: {app}; Fl
 [Icons]
 Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
 Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
-Name: {group}\Samples;          Filename: {app}\samples.bat;  WorkingDir: {app};
 Name: {group}\Help;             Filename: {#URL_HELP};
 Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 
-[Run]
-Filename: {app}\samples.bat;   Description: {cm:RunSamples}; WorkingDir: {app}; Flags: postinstall nowait;
-
-; shared code for installing the products
-#include "scripts\products.iss"
-; helper functions
-#include "scripts\products\stringversion.iss"
-#include "scripts\products\winversion.iss"
-#include "scripts\products\fileversion.iss"
-
-#include "scripts\products\msiproduct.iss"
-#include "scripts\products\vcredist2010sp1.iss"
-#include "scripts\products\vcredist2013.iss"
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\sdkjs"
 
 [Code]
+var
+  DownloadPage: TDownloadWizardPage;
+
 function InitializeSetup(): Boolean;
 begin
-  // initialize windows version
-  initwinversion();
-  
-  vcredist2010();
-  vcredist2013();
-
   Result := true;
 end;
 
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  if Progress = ProgressMax then
+    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
+  Result := true;
+end;
+
+procedure InitializeWizard;
+begin
+  DownloadPage := CreateDownloadPage(
+                    SetupMessage(msgWizardPreparing),
+                    SetupMessage(msgPreparingDesc),
+                    @OnDownloadProgress);
+end;
+
+function checkVCRedist2022(): Boolean;
+var
+  UpgradeCode: String;
+  Path: String;
+begin
+  Result := true;
+  //x86
+  UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; 
+  Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
+  if Is64BitInstallMode then
+  begin
+    //x64
+    UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; 
+    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
+  end;
+  if RegKeyExists(HKLM, Path) then
+  begin
+    Result := false;
+  end;
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  ResultCode: Integer;
 begin
   Result := true;
   if WizardSilent() = false then
   begin
     case CurPageID of
-      wpReady: Result := DownloadDependency();
+      wpReady: 
+      begin
+        if checkVCRedist2022() then
+        begin
+          DownloadPage.Clear;
+          DownloadPage.Add(
+            'https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe',
+            'vcredist.{#sWinArch}.exe', '');
+          DownloadPage.Show;
+          DownloadPage.Download;
+
+          Exec(
+            '>',
+            ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
+            '',
+            SW_SHOW,
+            EwWaitUntilTerminated,
+            ResultCode);
+
+          DownloadPage.Hide;
+        end;
+      end;
     end;
   end;
 end;

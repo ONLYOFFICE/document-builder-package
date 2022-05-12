@@ -24,7 +24,7 @@ BRANDING_DIR ?= .
 
 PACKAGE_NAME := $(COMPANY_NAME_LOW)-$(PRODUCT_NAME_LOW)
 
-UNAME_M := $(shell uname -m)
+UNAME_M ?= $(shell uname -m)
 ifeq ($(UNAME_M),x86_64)
 	RPM_ARCH := x86_64
 	DEB_ARCH := amd64
@@ -38,6 +38,12 @@ ifneq ($(filter %86,$(UNAME_M)),)
 	WIN_ARCH := x86
 	TAR_ARCH := i386
 	ARCHITECTURE := 32
+endif
+ifneq ($(filter aarch%,$(UNAME_M)),)
+	RPM_ARCH := aarch64
+	DEB_ARCH := arm64
+	TAR_ARCH := aarch64
+	ARCHITECTURE := arm64
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -55,17 +61,15 @@ else
 endif
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
-DEB_BUILD_DIR := $(PWD)/deb
 TAR_BUILD_DIR := $(PWD)/tar
 EXE_BUILD_DIR = exe
 ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-DEB_PACKAGE_DIR := $(DEB_BUILD_DIR)
 TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
-DEB := $(DEB_PACKAGE_DIR)/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
+DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
 EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
 ZIP := $(ZIP_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
@@ -87,19 +91,19 @@ ifdef ENABLE_SIGNING
 ISCC_PARAMS += //DENABLE_SIGNING=1
 endif
 
-ISXDL = $(EXE_BUILD_DIR)/scripts/isxdl/isxdl.dll
-
-LINUX_DEPS += common/documentbuilder/bin/documentbuilder
 LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
 
-DEB_DEPS += deb/debian/changelog
-DEB_DEPS += deb/debian/config
-DEB_DEPS += deb/debian/control
-DEB_DEPS += deb/debian/copyright
-DEB_DEPS += deb/debian/postinst
-DEB_DEPS += deb/debian/postrm
-DEB_DEPS += deb/debian/rules
-DEB_DEPS += deb/debian/$(PACKAGE_NAME).install
+DEB_DEPS += deb/build/debian/source/format
+DEB_DEPS += deb/build/debian/changelog
+DEB_DEPS += deb/build/debian/compat
+DEB_DEPS += deb/build/debian/config
+DEB_DEPS += deb/build/debian/control
+DEB_DEPS += deb/build/debian/copyright
+DEB_DEPS += deb/build/debian/postinst
+DEB_DEPS += deb/build/debian/postrm
+DEB_DEPS += deb/build/debian/rules
+DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).install
+DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).links
 
 RPM_DEPS += rpm/$(PACKAGE_NAME).spec
 
@@ -125,6 +129,10 @@ all: deb rpm tar
 
 rpm: $(RPM)
 
+rpm_aarch64 : ARCHITECTURE = arm64
+rpm_aarch64 : RPM_ARCH = aarch64
+rpm_aarch64 : $(RPM)
+
 deb: $(DEB)
 
 tar: $(TAR)
@@ -134,17 +142,14 @@ exe: $(EXE)
 zip: $(ZIP)
 
 clean:
-	$(RM) $(LINUX_DEPS)\
-		$(DOCUMENTBUILDER)\
-		$(DEB_DEPS)\
-		$(DEB_BUILD_DIR)/debian/.debhelper\
-		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)\
-		$(DEB_BUILD_DIR)/debian/files\
-		$(DEB_BUILD_DIR)/debian/*.debhelper.log\
-		$(DEB_BUILD_DIR)/debian/$(PACKAGE_NAME)*\
-		$(DEB_PACKAGE_DIR)/*.deb\
-		$(DEB_PACKAGE_DIR)/../*.changes\
-		$(DEB_PACKAGE_DIR)/../*.buildinfo\
+	$(RM) \
+		$(LINUX_DEPS) \
+		$(DOCUMENTBUILDER) \
+		deb/build \
+		deb/*.buildinfo \
+		deb/*.changes \
+		deb/*.ddeb \
+		deb/*.deb \
 		$(RPM_BUILD_DIR)\
 		$(EXE_BUILD_DIR)/*.exe\
 		$(ISXDL)\
@@ -159,6 +164,10 @@ $(PRODUCT_NAME_LOW):
 
 # 	echo "Done" > $@
 
+%/bin/$(PACKAGE_NAME) : %/bin/documentbuilder.sh.m4
+	m4 $(M4_PARAMS)	$< > $@
+	chmod +x $@
+
 $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	$(CD) rpm && rpmbuild -bb \
 	--define '_topdir $(RPM_BUILD_DIR)' \
@@ -168,24 +177,25 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_publisher_name $(PUBLISHER_NAME)' \
 	--define '_publisher_url $(PUBLISHER_URL)' \
 	--define '_support_mail $(SUPPORT_MAIL)' \
-	--define '_rpm_arch $(RPM_ARCH)' \
 	--define '_db_prefix $(DB_PREFIX)' \
 	--define '_binary_payload w7.xzdio' \
+	--target $(RPM_ARCH) \
 	$(PACKAGE_NAME).spec
 
+deb/build/debian/% : deb/template/%
+	mkdir -pv $(@D) && cp -fv $< $@
+
+deb/build/debian/% : deb/template/%.m4
+	mkdir -pv $(@D) && m4 $(M4_PARAMS) $< > $@
+
+deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
+	mkdir -pv $(@D) && m4 $(M4_PARAMS) $< > $@
+
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
-	$(CD) deb && dpkg-buildpackage -b -uc -us --changes-option=-u.
+	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
-$(EXE): $(WIN_DEPS) $(ISXDL)
+$(EXE): $(WIN_DEPS)
 	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
-
-$(ISXDL):
-	$(TOUCH) $(ISXDL) && \
-	for i in {1..5}; do \
-		$(CURL) $(ISXDL) https://raw.githubusercontent.com/jrsoftware/ispack/is-5_6_1/isxdlfiles/isxdl.dll && \
-		break || \
-		sleep 30s; \
-	done
 
 $(TAR): $(PRODUCT_NAME_LOW)
 	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
@@ -196,18 +206,8 @@ $(ZIP): $(PRODUCT_NAME_LOW)
 	$(MKDIR) $(dir $@)
 	7z a -y $@ ./$(DOCUMENTBUILDER)/*
 
-% : %.sh.m4
-	m4 $(M4_PARAMS)	$< > $@
-	chmod +x $@
-
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
-
-common/documentbuilder/bin/$(PACKAGE_NAME) : common/documentbuilder/bin/documentbuilder
-	ln -srf $< $@
-
-deb/debian/$(PACKAGE_NAME).install : deb/debian/package.install
-	mv -f $< $@
 
 rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 	cp -f $< $@

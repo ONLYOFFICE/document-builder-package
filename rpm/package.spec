@@ -8,7 +8,6 @@ URL: %{_publisher_url}
 Vendor: %{_publisher_name}
 Packager: %{_publisher_name} <%{_support_mail}>
 Requires: glibc, libcurl, libxml2, dejavu-sans-fonts, dejavu-sans-mono-fonts, dejavu-serif-fonts, libreoffice-opensymbol-fonts
-BuildArch: %{_rpm_arch}
 AutoReq: no
 AutoProv: no
 
@@ -35,8 +34,8 @@ cp -r $DOCUMENTBUILDER_HOME/* "$HOME_DIR/"
 
 #install documentbuilder bin
 mkdir -p "$BIN_DIR/"
-cp -r $DOCUMENTBUILDER_BIN/documentbuilder "$BIN_DIR/"
 cp -r $DOCUMENTBUILDER_BIN/%{_package_name} "$BIN_DIR/"
+ln -srf $BIN_DIR/%{_package_name} $BIN_DIR/documentbuilder
 
 %clean
 rm -rf "%{buildroot}"
