@@ -196,14 +196,14 @@ begin
         begin
           DownloadPage.Clear;
           DownloadPage.Add(
-            'https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe',
-            'vcredist.{#sWinArch}.exe', '');
+            'https://aka.ms/vs/17/release/vc_redist.{#ARCH}.exe',
+            'vcredist.{#ARCH}.exe', '');
           DownloadPage.Show;
           DownloadPage.Download;
 
           Exec(
             '>',
-            ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
+            ExpandConstant('{tmp}') + '\vcredist.{#ARCH}.exe /passive /norestart',
             '',
             SW_SHOW,
             EwWaitUntilTerminated,
