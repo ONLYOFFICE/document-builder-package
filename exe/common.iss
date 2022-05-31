@@ -245,7 +245,7 @@ begin
     '>',
     'ping google.com -n 1',
     '',
-    SW_SHOW,
+    SW_HIDE,
     EwWaitUntilTerminated,
     ResultCode);
   if ResultCode <> 0 then
