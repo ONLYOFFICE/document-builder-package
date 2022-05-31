@@ -236,24 +236,6 @@ begin
   end;
 end;
 
-function CheckInternetConnection(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := True;
-  Exec(
-    '>',
-    'ping google.com -n 1',
-    '',
-    SW_HIDE,
-    EwWaitUntilTerminated,
-    ResultCode);
-  if ResultCode <> 0 then
-  begin
-    Result := False;
-  end;
-end;
-
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   ResultCode: Integer;
@@ -264,7 +246,7 @@ begin
     case CurPageID of
       wpReady: 
       begin
-        if checkVCRedist2022() and CheckInternetConnection() then
+        if checkVCRedist2022() then
         begin
           DownloadPage.Clear;
           DownloadPage.Add(
