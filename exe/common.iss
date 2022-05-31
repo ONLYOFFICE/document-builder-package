@@ -264,7 +264,7 @@ begin
     case CurPageID of
       wpReady: 
       begin
-        if checkVCRedist2022() and CheckInternetConnection then
+        if checkVCRedist2022() and CheckInternetConnection() then
         begin
           DownloadPage.Clear;
           DownloadPage.Add(
