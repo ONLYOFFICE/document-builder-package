@@ -177,7 +177,6 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_publisher_name $(PUBLISHER_NAME)' \
 	--define '_publisher_url $(PUBLISHER_URL)' \
 	--define '_support_mail $(SUPPORT_MAIL)' \
-	--define '_rpm_arch $(RPM_ARCH)' \
 	--define '_db_prefix $(DB_PREFIX)' \
 	--define '_binary_payload w7.xzdio' \
 	--target $(RPM_ARCH) \
