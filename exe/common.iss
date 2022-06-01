@@ -222,12 +222,12 @@ var
 begin
   Result := true;
   //x86
-  UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; 
+  UpgradeCode := '{65E5BD06-6392-3027-8C26-853107D3CF1A}'; 
   Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
   if Is64BitInstallMode then
   begin
     //x64
-    UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; 
+    UpgradeCode := '{36F68A90-239C-34DF-B58C-64B30153CE35}'; 
     Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
   end;
   if RegKeyExists(HKLM, Path) then
