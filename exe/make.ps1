@@ -10,6 +10,7 @@ param (
 
 Set-Location $PSScriptRoot
 
+$ErrorActionPreference = "Stop"
 $BuildDir = "..\build"
 
 # Check base directory
