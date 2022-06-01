@@ -15,8 +15,7 @@ $BuildDir = "..\build"
 
 # Check base directory
 if (-Not (Test-Path -Path "$BuildDir\base")) {
-    Write-Host "Path $BuildDir\base not exists" -ForegroundColor Red
-    Exit 1
+    Write-Error "Path $BuildDir\base does not exist"
 }
 
 # ISCC path
@@ -38,3 +37,4 @@ if ($Sign) {
 # Build
 Write-Host "ISCC $InnoArgs builder.iss" -ForegroundColor Yellow
 & ISCC $InnoArgs builder.iss
+Exit $LastExitCode
