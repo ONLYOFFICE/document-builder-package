@@ -195,48 +195,9 @@ Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 Type: filesandordirs; Name: "{app}\sdkjs"
 
 [Code]
-var
-  DownloadPage: TDownloadWizardPage;
-
 function InitializeSetup(): Boolean;
 begin
   Result := true;
-end;
-
-function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
-begin
-  if Progress = ProgressMax then
-    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
-  Result := true;
-end;
-
-procedure InitializeWizard;
-begin
-  DownloadPage := CreateDownloadPage(
-                    SetupMessage(msgWizardPreparing),
-                    SetupMessage(msgPreparingDesc),
-                    @OnDownloadProgress);
-end;
-
-function checkVCRedist2022(): Boolean;
-var
-  UpgradeCode: String;
-  Path: String;
-begin
-  Result := true;
-  //x86
-  UpgradeCode := '{65E5BD06-6392-3027-8C26-853107D3CF1A}'; 
-  Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
-  if Is64BitInstallMode then
-  begin
-    //x64
-    UpgradeCode := '{36F68A90-239C-34DF-B58C-64B30153CE35}'; 
-    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
-  end;
-  if RegKeyExists(HKLM, Path) then
-  begin
-    Result := false;
-  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
