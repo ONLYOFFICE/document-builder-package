@@ -79,6 +79,9 @@
   #define sAppVersion       str(sAppVerShort + '.' + sAppBuildNumber)
 #endif
 
+#define public Dependency_NoExampleSetup
+#include "InnoDependencyInstaller\CodeDependencies.iss"
+
 [Setup]
 AppName                   ={#sAppName}
 AppVerName                ={#sAppName} {#sAppVerShort}
@@ -244,28 +247,7 @@ begin
   if WizardSilent() = false then
   begin
     case CurPageID of
-      wpReady: 
-      begin
-        if checkVCRedist2022() then
-        begin
-          DownloadPage.Clear;
-          DownloadPage.Add(
-            'https://aka.ms/vs/17/release/vc_redist.{#sWinArch}.exe',
-            'vcredist.{#sWinArch}.exe', '');
-          DownloadPage.Show;
-          DownloadPage.Download;
-
-          Exec(
-            '>',
-            ExpandConstant('{tmp}') + '\vcredist.{#sWinArch}.exe /passive /norestart',
-            '',
-            SW_SHOW,
-            EwWaitUntilTerminated,
-            ResultCode);
-
-          DownloadPage.Hide;
-        end;
-      end;
+      wpReady: Dependency_AddVC2015To2022;
     end;
   end;
 end;
