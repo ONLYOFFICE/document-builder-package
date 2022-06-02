@@ -25,6 +25,9 @@
   #include BRANDING_DIR + '\branding.iss')
 #endif
 
+#define public Dependency_NoExampleSetup
+#include "InnoDependencyInstaller\CodeDependencies.iss"
+
 [Setup]
 AppName                   ={#sAppName}
 AppVerName                ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
@@ -138,48 +141,9 @@ Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
 Type: filesandordirs; Name: "{app}\sdkjs"
 
 [Code]
-var
-  DownloadPage: TDownloadWizardPage;
-
 function InitializeSetup(): Boolean;
 begin
   Result := true;
-end;
-
-function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
-begin
-  if Progress = ProgressMax then
-    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
-  Result := true;
-end;
-
-procedure InitializeWizard;
-begin
-  DownloadPage := CreateDownloadPage(
-                    SetupMessage(msgWizardPreparing),
-                    SetupMessage(msgPreparingDesc),
-                    @OnDownloadProgress);
-end;
-
-function checkVCRedist2022(): Boolean;
-var
-  UpgradeCode: String;
-  Path: String;
-begin
-  Result := true;
-  //x86
-  UpgradeCode := '{5720EC03-F26F-40B7-980C-50B5D420B5DE}'; 
-  Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
-  if Is64BitInstallMode then
-  begin
-    //x64
-    UpgradeCode := '{A181A302-3F6D-4BAD-97A8-A426A6499D78}'; 
-    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
-  end;
-  if RegKeyExists(HKLM, Path) then
-  begin
-    Result := false;
-  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -190,28 +154,7 @@ begin
   if WizardSilent() = false then
   begin
     case CurPageID of
-      wpReady: 
-      begin
-        if checkVCRedist2022() then
-        begin
-          DownloadPage.Clear;
-          DownloadPage.Add(
-            'https://aka.ms/vs/17/release/vc_redist.{#ARCH}.exe',
-            'vcredist.{#ARCH}.exe', '');
-          DownloadPage.Show;
-          DownloadPage.Download;
-
-          Exec(
-            '>',
-            ExpandConstant('{tmp}') + '\vcredist.{#ARCH}.exe /passive /norestart',
-            '',
-            SW_SHOW,
-            EwWaitUntilTerminated,
-            ResultCode);
-
-          DownloadPage.Hide;
-        end;
-      end;
+      wpReady: Dependency_AddVC2015To2022;
     end;
   end;
 end;
