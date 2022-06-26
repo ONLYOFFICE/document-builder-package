@@ -8,33 +8,38 @@ param (
     [string]$TimestampServer = "http://timestamp.digicert.com"
 )
 
+$ErrorActionPreference = "Stop"
+
 Set-Location $PSScriptRoot
 
-$ErrorActionPreference = "Stop"
-$BuildDir = "..\build"
-
-# Check base directory
-if (-Not (Test-Path -Path "$BuildDir\base")) {
-    Write-Error "Path $BuildDir\base does not exist"
+# Check app directory
+if ( -Not (Test-Path -Path "build\app") ) {
+    Write-Error "Path build\app does not exist"
 }
 
 # ISCC path
-$InnoPath=(Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1")."Inno Setup: App Path"
+if ( $env:INNOPATH ) {
+    $InnoPath = $env:INNOPATH
+}
+else
+{
+    $InnoPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1")."Inno Setup: App Path"
+}
 $env:Path = "$InnoPath;$env:Path"
 
 # ISCC args
-$InnoArgs = "/DBASE_DIR=$BuildDir\base",
-            "/DOUTPUT_DIR=$BuildDir\exe",
+$InnoArgs = "/DAPP_DIR=..\build\app",
+            "/DOUTPUT_DIR=..\build",
             "/DVERSION=$Version.$Build"
-if ($Branding) {
+if ( $Branding ) {
     $InnoArgs += "/DBRANDING_DIR=$Branding"
 }
-if ($Sign) {
+if ( $Sign ) {
     $InnoArgs += "/DSIGN"
     $InnoArgs += "/Sbyparam=signtool.exe sign /v /n `$q$CertName`$q /t $TimestampServer `$f"
 }
 
 # Build
-Write-Host "ISCC $InnoArgs builder.iss" -ForegroundColor Yellow
-& ISCC $InnoArgs builder.iss
+Write-Host "ISCC $InnoArgs exe\builder.iss" -ForegroundColor Yellow
+& ISCC $InnoArgs exe\builder.iss
 Exit $LastExitCode

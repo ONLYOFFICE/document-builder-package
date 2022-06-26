@@ -11,8 +11,8 @@
 #endif
 #define ARCH 'x64'
 #define NAME_EXE_OUT 'docbuilder.exe'
-#ifndef BASE_DIR
-  #define BASE_DIR '..\base'
+#ifndef APP_DIR
+#define APP_DIR '..\build\app'
 #endif
 #ifndef OUTPUT_DIR
   #define OUTPUT_DIR '.'
@@ -122,17 +122,16 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 ;======================================================================================================
 
 [Files]
-Source: {#BASE_DIR}\*; DestDir: {app}; Flags: ignoreversion recursesubdirs;
-Source: {#BASE_DIR}\docbuilder.com.dll; DestDir: {app}; Flags: ignoreversion regserver
-
-Source: {#BRANDING_DIR}\res\license.htm; DestDir: {app};
-Source: {#BRANDING_DIR}\res\readme.txt; DestDir: {app}; Flags: isreadme;
+Source: {#APP_DIR}\*;                   DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: {#APP_DIR}\docbuilder.com.dll;  DestDir: {app}; Flags: ignoreversion regserver
+Source: {#BRANDING_DIR}\res\LICENSE.htm; DestDir: {app};
+Source: {#BRANDING_DIR}\res\README.txt;  DestDir: {app}; Flags: isreadme;
 
 [Icons]
-Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
-Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
-Name: {group}\Help;             Filename: {#sHelpURL};
-Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
+Name: {group}\Help;           Filename: {#sHelpURL};
+Name: {group}\LICENSE;        Filename: {app}\LICENSE.htm; WorkingDir: {app};
+Name: {group}\README;         Filename: {app}\README.txt;  WorkingDir: {app}; 
+Name: {group}\{cm:Uninstall}; Filename: {uninstallexe};    WorkingDir: {app};
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\sdkjs"
