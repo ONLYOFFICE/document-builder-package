@@ -1,13 +1,13 @@
 ﻿; -- Document Builder Installer --
 
 #ifndef BRANDING_DIR
-  #define BRANDING_DIR '.'
+#define BRANDING_DIR '.'
 #endif
 
 #include BRANDING_DIR + '\defines.iss'
 
 #ifndef VERSION
-  #define VERSION '0.0.0.0'
+#define VERSION '1.0.0.1'
 #endif
 #define ARCH 'x64'
 #define NAME_EXE_OUT 'docbuilder.exe'
@@ -15,57 +15,56 @@
 #define APP_DIR '..\build\app'
 #endif
 #ifndef OUTPUT_DIR
-  #define OUTPUT_DIR '.'
+#define OUTPUT_DIR '.'
 #endif
 #ifndef OUTPUT_BASENAME
-  #define OUTPUT_BASENAME sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH
+#define OUTPUT_BASENAME Lowercase( \
+  sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH)
 #endif
 
 #if FileExists(BRANDING_DIR + '\branding.iss')
-  #include BRANDING_DIR + '\branding.iss')
+#include BRANDING_DIR + '\branding.iss'
 #endif
 
 [Setup]
-AppName                   ={#sAppName}
-AppVerName                ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
-AppVersion                ={#VERSION}
-VersionInfoVersion        ={#VERSION}
-OutputBaseFileName        ={#OUTPUT_BASENAME}
-
-AppPublisher              ={#sPublisherName}
-AppPublisherURL           ={#sPublisherURL}
-AppSupportURL             ={#sSupportURL}
-AppCopyright              ={#sCopyright}
-
-ArchitecturesAllowed      =x64
+AppName                ={#sAppName}
+AppVerName             ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
+AppVersion             ={#VERSION}
+AppPublisher           ={#sPublisherName}
+AppPublisherURL        ={#sPublisherURL}
+AppSupportURL          ={#sSupportURL}
+AppCopyright           ={#sCopyright}
+AppMutex               =TEAMLAB
+AllowNoIcons           =yes
+ArchitecturesAllowed   =x64
 ArchitecturesInstallIn64BitMode=x64
+;ChangesEnvironment     =yes
+DefaultDirName         ={commonpf}\{#sAppPath}
+DefaultGroupName       ={#sAppPath}
+DirExistsWarning       =no
+DisableProgramGroupPage=yes
+DisableWelcomePage     =no
+LicenseFile            ={#BRANDING_DIR}\res\LICENSE.rtf
+PrivilegesRequired     =admin
+SetupMutex             =ASC
+UsePreviousAppDir      =no
 
-DefaultGroupName          ={#sAppPath}
-WizardImageFile           ={#BRANDING_DIR}\res\dialogpicture.bmp
-WizardSmallImageFile      ={#BRANDING_DIR}\res\dialogicon.bmp
-LicenseFile               ={#BRANDING_DIR}\res\LICENSE.rtf
-
-UsePreviousAppDir         = no
-DirExistsWarning          = no
-DefaultDirName            ={pf}\{#sAppPath}
-DisableProgramGroupPage   = yes
-DisableWelcomePage        = no
-AllowNoIcons              = yes
-UninstallDisplayIcon      = {app}\{#NAME_EXE_OUT}
-OutputDir                 = {#OUTPUT_DIR}
-Compression               = lzma
-PrivilegesRequired        = admin
-;ChangesEnvironment        = yes
-SetupMutex                = ASC
-AppMutex                  = TEAMLAB
-DEPCompatible             = no
-LanguageDetectionMethod   = none
-;ShowUndisplayableLanguages = true
+LanguageDetectionMethod=none
+;ShowUndisplayableLanguages=true
 ;UsePreviousLanguage=no
 
+UninstallDisplayIcon={app}\{#NAME_EXE_OUT}
+WizardImageFile     ={#BRANDING_DIR}\res\dialogpicture.bmp
+WizardSmallImageFile={#BRANDING_DIR}\res\dialogicon.bmp
+
+Compression       =lzma
+DEPCompatible     =no
+OutputDir         ={#OUTPUT_DIR}
+OutputBaseFileName={#OUTPUT_BASENAME}
 #ifdef SIGN
-SignTool=byparam $p
+SignTool          =byparam $p
 #endif
+VersionInfoVersion={#VERSION}
 
 [Languages]
 #ifdef _ONLYOFFICE
@@ -101,7 +100,7 @@ ru.InstallAdditionalComponents =Установка дополнительных 
 ;======================================================================================================
 ;en.AdditionalTasks =Tasks:
 ;ru.AdditionalTasks =Задачи:
-; de.AdditionalTasks =Aufgaben:
+;de.AdditionalTasks =Aufgaben:
 ;fr.AdditionalTasks =Tвches:
 ;es.AdditionalTasks =Tareas:
 ;it.AdditionalTasks =Compiti:
