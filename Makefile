@@ -46,24 +46,16 @@ ifneq ($(filter aarch%,$(UNAME_M)),)
 	ARCHITECTURE := arm64
 endif
 
-ifeq ($(OS),Windows_NT)
-	PLATFORM := win
-	SRC ?= ../build_tools/out/win_$(ARCHITECTURE)/$(COMPANY_NAME)/$(PRODUCT_NAME)/*
-	PACKAGE_VERSION := $(PRODUCT_VERSION).$(BUILD_NUMBER)
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		PLATFORM := linux
-		SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
-		DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
-		PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
-	endif
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	PLATFORM := linux
+	SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
+	DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
+	PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 endif
 
 RPM_BUILD_DIR := $(PWD)/rpm/builddir
 TAR_BUILD_DIR := $(PWD)/tar
-EXE_BUILD_DIR = exe
-ZIP_BUILD_DIR = zip
 
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
@@ -71,25 +63,9 @@ TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).$(RPM_ARCH).rpm
 DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)_$(DEB_ARCH).deb
 TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(TAR_ARCH).tar.gz
-EXE := $(EXE_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).exe
-ZIP := $(ZIP_BUILD_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(WIN_ARCH).zip
-
-CORE_PATH := ../core
 
 DOCUMENTBUILDER := common/documentbuilder/home
 DOCUMENTBUILDER_BIN := common/documentbuilder/bin
-
-ISCC := iscc 
-ISCC_PARAMS += //Qp
-ISCC_PARAMS += //S"byparam=signtool.exe sign /v /n $(firstword $(PUBLISHER_NAME)) /t http://timestamp.digicert.com \$$f"
-ISCC_PARAMS += //DsAppVerShort=$(PRODUCT_VERSION)
-ISCC_PARAMS += //DsAppBuildNumber=$(BUILD_NUMBER)
-ifeq ($(COMPANY_NAME), ONLYOFFICE)
-	ISCC_PARAMS += //D_ONLYOFFICE=1
-endif
-ifdef ENABLE_SIGNING
-ISCC_PARAMS += //DENABLE_SIGNING=1
-endif
 
 LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
 
@@ -106,8 +82,6 @@ DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).install
 DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).links
 
 RPM_DEPS += rpm/$(PACKAGE_NAME).spec
-
-WIN_DEPS += exe/$(PACKAGE_NAME).iss
 
 M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
@@ -150,12 +124,8 @@ clean:
 		deb/*.changes \
 		deb/*.ddeb \
 		deb/*.deb \
-		$(RPM_BUILD_DIR)\
-		$(EXE_BUILD_DIR)/*.exe\
-		$(ISXDL)\
-		$(VCREDIST)\
-		$(TAR_BUILD_DIR)\
-		$(ZIP_BUILD_DIR)\
+		$(RPM_BUILD_DIR) \
+		$(TAR_BUILD_DIR) \
 		$(PRODUCT_NAME_LOW)
 
 $(PRODUCT_NAME_LOW):
@@ -194,17 +164,10 @@ deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
 $(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
-$(EXE): $(WIN_DEPS)
-	cd exe && $(ISCC) $(ISCC_PARAMS) $(PACKAGE_NAME).iss
-
 $(TAR): $(PRODUCT_NAME_LOW)
 	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
 	$(CP) $(TAR_BUILD_DIR)/documentbuilder $(DOCUMENTBUILDER)/*
 	tar -czf $@ --owner=root --group=root -C $(TAR_BUILD_DIR) documentbuilder
-
-$(ZIP): $(PRODUCT_NAME_LOW)
-	$(MKDIR) $(dir $@)
-	7z a -y $@ ./$(DOCUMENTBUILDER)/*
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
@@ -212,16 +175,10 @@ $(ZIP): $(PRODUCT_NAME_LOW)
 rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 	cp -f $< $@
 
-exe/$(PACKAGE_NAME).iss : exe/package.iss
-	mv -f $< $@
-
 ifeq ($(PLATFORM),linux)
 PACKAGES += deb
 PACKAGES += rpm
 # PACKAGES += tar
-else ifeq ($(PLATFORM),win)
-PACKAGES += exe
-PACKAGES += zip
 endif
 
 packages: $(PACKAGES)

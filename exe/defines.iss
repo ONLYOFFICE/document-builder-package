@@ -1,4 +1,4 @@
-; -- ONLYOFFICE Document Builder Defines --
+﻿; -- ONLYOFFICE Defines --
 
 #define sCompanyName      'ONLYOFFICE'
 #define sIntCompanyName   'ONLYOFFICE'
