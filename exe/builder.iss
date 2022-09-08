@@ -9,7 +9,9 @@
 #ifndef VERSION
   #define VERSION '0.0.0.0'
 #endif
-#define ARCH 'x64'
+#ifndef ARCH
+  #define ARCH 'x64'
+#endif
 #define NAME_EXE_OUT 'docbuilder.exe'
 #ifndef BASE_DIR
   #define BASE_DIR '..\base'
@@ -40,8 +42,10 @@ AppPublisherURL           ={#sPublisherURL}
 AppSupportURL             ={#sSupportURL}
 AppCopyright              ={#sCopyright}
 
+#if str(ARCH) == "x64"
 ArchitecturesAllowed      =x64
 ArchitecturesInstallIn64BitMode=x64
+#endif
 
 DefaultGroupName          ={#sAppPath}
 WizardImageFile           ={#BRANDING_DIR}\res\dialogpicture.bmp
