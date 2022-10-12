@@ -9,7 +9,9 @@
 #ifndef VERSION
 #define VERSION '1.0.0.1'
 #endif
-#define ARCH 'x64'
+#ifndef ARCH
+  #define ARCH 'x64'
+#endif
 #define NAME_EXE_OUT 'docbuilder.exe'
 #ifndef APP_DIR
 #define APP_DIR '..\build\app'
@@ -26,6 +28,9 @@
 #include BRANDING_DIR + '\branding.iss'
 #endif
 
+#define public Dependency_NoExampleSetup
+#include "InnoDependencyInstaller\CodeDependencies.iss"
+
 [Setup]
 AppName                ={#sAppName}
 AppVerName             ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
@@ -36,8 +41,10 @@ AppSupportURL          ={#sSupportURL}
 AppCopyright           ={#sCopyright}
 AppMutex               =TEAMLAB
 AllowNoIcons           =yes
+#if str(ARCH) == "x64"
 ArchitecturesAllowed   =x64
 ArchitecturesInstallIn64BitMode=x64
+#endif
 ;ChangesEnvironment     =yes
 DefaultDirName         ={commonpf}\{#sAppPath}
 DefaultGroupName       ={#sAppPath}
@@ -136,48 +143,9 @@ Name: {group}\{cm:Uninstall}; Filename: {uninstallexe};    WorkingDir: {app};
 Type: filesandordirs; Name: "{app}\sdkjs"
 
 [Code]
-var
-  DownloadPage: TDownloadWizardPage;
-
 function InitializeSetup(): Boolean;
 begin
   Result := true;
-end;
-
-function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
-begin
-  if Progress = ProgressMax then
-    Log(Format('Successfully downloaded file to {tmp}: %s', [FileName]));
-  Result := true;
-end;
-
-procedure InitializeWizard;
-begin
-  DownloadPage := CreateDownloadPage(
-                    SetupMessage(msgWizardPreparing),
-                    SetupMessage(msgPreparingDesc),
-                    @OnDownloadProgress);
-end;
-
-function checkVCRedist2022(): Boolean;
-var
-  UpgradeCode: String;
-  Path: String;
-begin
-  Result := true;
-  //x86
-  UpgradeCode := '{65E5BD06-6392-3027-8C26-853107D3CF1A}'; 
-  Path := 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode
-  if Is64BitInstallMode then
-  begin
-    //x64
-    UpgradeCode := '{36F68A90-239C-34DF-B58C-64B30153CE35}'; 
-    Path := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' + UpgradeCode  
-  end;
-  if RegKeyExists(HKLM, Path) then
-  begin
-    Result := false;
-  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -188,28 +156,7 @@ begin
   if WizardSilent() = false then
   begin
     case CurPageID of
-      wpReady: 
-      begin
-        if checkVCRedist2022() then
-        begin
-          DownloadPage.Clear;
-          DownloadPage.Add(
-            'https://aka.ms/vs/17/release/vc_redist.{#ARCH}.exe',
-            'vcredist.{#ARCH}.exe', '');
-          DownloadPage.Show;
-          DownloadPage.Download;
-
-          Exec(
-            '>',
-            ExpandConstant('{tmp}') + '\vcredist.{#ARCH}.exe /passive /norestart',
-            '',
-            SW_SHOW,
-            EwWaitUntilTerminated,
-            ResultCode);
-
-          DownloadPage.Hide;
-        end;
-      end;
+      wpReady: Dependency_AddVC2015To2022;
     end;
   end;
 end;
