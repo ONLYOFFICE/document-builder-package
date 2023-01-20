@@ -30,6 +30,7 @@ $env:Path = "$InnoPath;$env:Path"
 # ISCC args
 $InnoArgs = "/DAPP_DIR=..\build\app",
             "/DOUTPUT_DIR=..\build",
+            "/DARCH=$Arch",
             "/DVERSION=$Version.$Build"
 if ( $Branding ) {
     $InnoArgs += "/DBRANDING_DIR=$Branding"
