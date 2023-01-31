@@ -1,78 +1,77 @@
 ﻿; -- Document Builder Installer --
 
 #ifndef BRANDING_DIR
-  #define BRANDING_DIR '.'
+#define BRANDING_DIR '.'
 #endif
 
 #include BRANDING_DIR + '\defines.iss'
 
 #ifndef VERSION
-  #define VERSION '0.0.0.0'
+#define VERSION '1.0.0.1'
 #endif
 #ifndef ARCH
   #define ARCH 'x64'
 #endif
 #define NAME_EXE_OUT 'docbuilder.exe'
-#ifndef BASE_DIR
-  #define BASE_DIR '..\base'
+#ifndef APP_DIR
+#define APP_DIR '..\build\app'
 #endif
 #ifndef OUTPUT_DIR
-  #define OUTPUT_DIR '.'
+#define OUTPUT_DIR '.'
 #endif
 #ifndef OUTPUT_BASENAME
-  #define OUTPUT_BASENAME sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH
+#define OUTPUT_BASENAME Lowercase( \
+  sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH)
 #endif
 
 #if FileExists(BRANDING_DIR + '\branding.iss')
-  #include BRANDING_DIR + '\branding.iss')
+#include BRANDING_DIR + '\branding.iss'
 #endif
 
 #define public Dependency_NoExampleSetup
 #include "InnoDependencyInstaller\CodeDependencies.iss"
 
 [Setup]
-AppName                   ={#sAppName}
-AppVerName                ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
-AppVersion                ={#VERSION}
-VersionInfoVersion        ={#VERSION}
-OutputBaseFileName        ={#OUTPUT_BASENAME}
-
-AppPublisher              ={#sPublisherName}
-AppPublisherURL           ={#sPublisherURL}
-AppSupportURL             ={#sSupportURL}
-AppCopyright              ={#sCopyright}
-
+AppName                ={#sAppName}
+AppVerName             ={#sAppName} {#Copy(VERSION,1,RPos('.',VERSION)-1)}
+AppVersion             ={#VERSION}
+AppPublisher           ={#sPublisherName}
+AppPublisherURL        ={#sPublisherURL}
+AppSupportURL          ={#sSupportURL}
+AppCopyright           ={#sCopyright}
+AppMutex               =TEAMLAB
+AllowNoIcons           =yes
 #if str(ARCH) == "x64"
-ArchitecturesAllowed      =x64
+ArchitecturesAllowed   =x64
 ArchitecturesInstallIn64BitMode=x64
 #endif
+;ChangesEnvironment     =yes
+DefaultDirName         ={commonpf}\{#sAppPath}
+DefaultGroupName       ={#sAppPath}
+DirExistsWarning       =no
+DisableProgramGroupPage=yes
+DisableWelcomePage     =no
+LicenseFile            ={#BRANDING_DIR}\res\LICENSE.rtf
+PrivilegesRequired     =admin
+SetupMutex             =ASC
+UsePreviousAppDir      =no
 
-DefaultGroupName          ={#sAppPath}
-WizardImageFile           ={#BRANDING_DIR}\res\dialogpicture.bmp
-WizardSmallImageFile      ={#BRANDING_DIR}\res\dialogicon.bmp
-LicenseFile               ={#BRANDING_DIR}\res\LICENSE.rtf
-
-UsePreviousAppDir         = no
-DirExistsWarning          = no
-DefaultDirName            ={pf}\{#sAppPath}
-DisableProgramGroupPage   = yes
-DisableWelcomePage        = no
-AllowNoIcons              = yes
-UninstallDisplayIcon      = {app}\{#NAME_EXE_OUT}
-OutputDir                 = {#OUTPUT_DIR}
-Compression               = lzma
-PrivilegesRequired        = admin
-;ChangesEnvironment        = yes
-SetupMutex                = ASC
-AppMutex                  = TEAMLAB
-DEPCompatible             = no
-LanguageDetectionMethod   = none
-;ShowUndisplayableLanguages = true
+LanguageDetectionMethod=none
+;ShowUndisplayableLanguages=true
 ;UsePreviousLanguage=no
 
+UninstallDisplayIcon={app}\{#NAME_EXE_OUT}
+WizardImageFile     ={#BRANDING_DIR}\res\dialogpicture.bmp
+WizardSmallImageFile={#BRANDING_DIR}\res\dialogicon.bmp
+
+Compression       =lzma
+DEPCompatible     =no
+OutputDir         ={#OUTPUT_DIR}
+OutputBaseFileName={#OUTPUT_BASENAME}
 #ifdef SIGN
-SignTool=byparam $p
+SignTool          =byparam $p
 #endif
+VersionInfoVersion={#VERSION}
 
 [Languages]
 #ifdef _ONLYOFFICE
@@ -108,7 +107,7 @@ ru.InstallAdditionalComponents =Установка дополнительных 
 ;======================================================================================================
 ;en.AdditionalTasks =Tasks:
 ;ru.AdditionalTasks =Задачи:
-; de.AdditionalTasks =Aufgaben:
+;de.AdditionalTasks =Aufgaben:
 ;fr.AdditionalTasks =Tвches:
 ;es.AdditionalTasks =Tareas:
 ;it.AdditionalTasks =Compiti:
@@ -129,17 +128,16 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 ;======================================================================================================
 
 [Files]
-Source: {#BASE_DIR}\*; DestDir: {app}; Flags: ignoreversion recursesubdirs;
-Source: {#BASE_DIR}\docbuilder.com.dll; DestDir: {app}; Flags: ignoreversion regserver
-
-Source: {#BRANDING_DIR}\res\license.htm; DestDir: {app};
-Source: {#BRANDING_DIR}\res\readme.txt; DestDir: {app}; Flags: isreadme;
+Source: {#APP_DIR}\*;                   DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: {#APP_DIR}\docbuilder.com.dll;  DestDir: {app}; Flags: ignoreversion regserver
+Source: {#BRANDING_DIR}\res\LICENSE.htm; DestDir: {app};
+Source: {#BRANDING_DIR}\res\README.txt;  DestDir: {app}; Flags: isreadme;
 
 [Icons]
-Name: {group}\README;           Filename: {app}\readme.txt;   WorkingDir: {app}; 
-Name: {group}\LICENSE;          Filename: {app}\license.htm;  WorkingDir: {app};
-Name: {group}\Help;             Filename: {#sHelpURL};
-Name: {group}\{cm:Uninstall};   Filename: {uninstallexe};     WorkingDir: {app};
+Name: {group}\Help;           Filename: {#sHelpURL};
+Name: {group}\LICENSE;        Filename: {app}\LICENSE.htm; WorkingDir: {app};
+Name: {group}\README;         Filename: {app}\README.txt;  WorkingDir: {app}; 
+Name: {group}\{cm:Uninstall}; Filename: {uninstallexe};    WorkingDir: {app};
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\sdkjs"
