@@ -37,7 +37,7 @@ if ( $Branding ) {
 }
 if ( $Sign ) {
     $InnoArgs += "/DSIGN"
-    $InnoArgs += "/Sbyparam=signtool.exe sign /v /n `$q$CertName`$q /t $TimestampServer `$f"
+    $InnoArgs += "/Sbyparam=signtool.exe sign /a /v /n `$q$CertName`$q /t $TimestampServer `$f"
 }
 
 # Build
