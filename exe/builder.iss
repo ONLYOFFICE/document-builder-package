@@ -129,6 +129,8 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 
 [Files]
 Source: {#APP_DIR}\*;                   DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: {#APP_DIR}\*.exe;               DestDir: {app}; Flags: signonce;
+Source: {#APP_DIR}\*.dll;               DestDir: {app}; Flags: signonce;
 Source: {#APP_DIR}\docbuilder.com.dll;  DestDir: {app}; Flags: ignoreversion regserver
 Source: {#BRANDING_DIR}\res\LICENSE.htm; DestDir: {app};
 Source: {#BRANDING_DIR}\res\README.txt;  DestDir: {app}; Flags: isreadme;
