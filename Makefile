@@ -86,7 +86,7 @@ RPM_DEPS += rpm/$(PACKAGE_NAME).spec
 M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
 M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
-M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)$(DEB_RELEASE:%=~%)
+M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)$(DEB_RELEASE_SUFFIX:%=-%)
 M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
 M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
@@ -143,7 +143,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_topdir $(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
 	--define '_product_version $(PRODUCT_VERSION)' \
-	--define '_build_number $(BUILD_NUMBER)$(RPM_RELEASE:%=.%)' \
+	--define '_build_number $(BUILD_NUMBER)$(RPM_RELEASE_SUFFIX:%=.%)' \
 	--define '_publisher_name $(PUBLISHER_NAME)' \
 	--define '_publisher_url $(PUBLISHER_URL)' \
 	--define '_support_mail $(SUPPORT_MAIL)' \
