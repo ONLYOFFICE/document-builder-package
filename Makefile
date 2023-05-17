@@ -60,20 +60,9 @@ TAR_BUILD_DIR := $(PWD)/tar
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
-DISTRIB_CODENAME=$(shell lsb_release -cs || echo "n/a")
-ifeq ($(DISTRIB_CODENAME),trusty)
-  RPM_RELEASE := el7
-  DEB_RELEASE := jessie
-  TAR_RELEASE := gcc4
-else ifeq ($(DISTRIB_CODENAME),xenial)
-  RPM_RELEASE := el8
-  DEB_RELEASE := stretch
-  TAR_RELEASE := gcc5
-endif
-
-RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(RPM_RELEASE:%=.%).$(RPM_ARCH).rpm
-DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)$(DEB_RELEASE:%=~%)_$(DEB_ARCH).deb
-TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(TAR_RELEASE:%=_%)-$(TAR_ARCH).tar.gz
+RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(RPM_RELEASE_SUFFIX:%=.%).$(RPM_ARCH).rpm
+DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)$(DEB_RELEASE_SUFFIX:%=-%)_$(DEB_ARCH).deb
+TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(TAR_RELEASE_SUFFIX:%=-%)-$(TAR_ARCH).tar.gz
 
 DOCUMENTBUILDER := common/documentbuilder/home
 DOCUMENTBUILDER_BIN := common/documentbuilder/bin
@@ -97,7 +86,7 @@ RPM_DEPS += rpm/$(PACKAGE_NAME).spec
 M4_PARAMS += -D M4_COMPANY_NAME=$(COMPANY_NAME)
 M4_PARAMS += -D M4_PRODUCT_NAME=$(PRODUCT_NAME)
 M4_PARAMS += -D M4_PACKAGE_NAME=$(PACKAGE_NAME)
-M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)$(DEB_RELEASE:%=~%)
+M4_PARAMS += -D M4_PACKAGE_VERSION=$(PACKAGE_VERSION)$(DEB_RELEASE_SUFFIX:%=-%)
 M4_PARAMS += -D M4_DB_PREFIX=$(DB_PREFIX)
 M4_PARAMS += -D M4_DEB_ARCH=$(DEB_ARCH)
 M4_PARAMS += -D M4_RPM_ARCH=$(RPM_ARCH)
@@ -154,7 +143,7 @@ $(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
 	--define '_topdir $(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
 	--define '_product_version $(PRODUCT_VERSION)' \
-	--define '_build_number $(BUILD_NUMBER)$(RPM_RELEASE:%=.%)' \
+	--define '_build_number $(BUILD_NUMBER)$(RPM_RELEASE_SUFFIX:%=.%)' \
 	--define '_publisher_name $(PUBLISHER_NAME)' \
 	--define '_publisher_url $(PUBLISHER_URL)' \
 	--define '_support_mail $(SUPPORT_MAIL)' \

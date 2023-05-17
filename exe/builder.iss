@@ -7,10 +7,10 @@
 #include BRANDING_DIR + '\defines.iss'
 
 #ifndef VERSION
-#define VERSION '1.0.0.1'
+#define VERSION '0.0.0.0'
 #endif
 #ifndef ARCH
-  #define ARCH 'x64'
+#define ARCH 'x64'
 #endif
 #define NAME_EXE_OUT 'docbuilder.exe'
 #ifndef APP_DIR
@@ -20,8 +20,7 @@
 #define OUTPUT_DIR '.'
 #endif
 #ifndef OUTPUT_BASENAME
-#define OUTPUT_BASENAME Lowercase( \
-  sIntCompanyName + '_' + sIntProductName + '_' + VERSION + '_' + ARCH)
+#define OUTPUT_BASENAME sIntCompanyName + '-' + sIntProductName + '-' + VERSION + '-' + ARCH
 #endif
 
 #if FileExists(BRANDING_DIR + '\branding.iss')
@@ -129,6 +128,8 @@ ru.WarningWrongArchitecture =Вы устанавливаете %1-битную �
 
 [Files]
 Source: {#APP_DIR}\*;                   DestDir: {app}; Flags: ignoreversion recursesubdirs;
+Source: {#APP_DIR}\*.exe;               DestDir: {app}; Flags: signonce;
+Source: {#APP_DIR}\*.dll;               DestDir: {app}; Flags: signonce;
 Source: {#APP_DIR}\docbuilder.com.dll;  DestDir: {app}; Flags: ignoreversion regserver
 Source: {#BRANDING_DIR}\res\LICENSE.htm; DestDir: {app};
 Source: {#BRANDING_DIR}\res\README.txt;  DestDir: {app}; Flags: isreadme;
