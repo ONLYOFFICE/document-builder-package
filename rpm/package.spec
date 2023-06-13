@@ -47,11 +47,8 @@ rm -rf "%{buildroot}"
 %pre
 
 %post
-chmod -R 777 /opt/%{_db_prefix}
-ln -sf %{_libdir}/libcurl.so.4 /opt/%{_db_prefix}/libcurl-gnutls.so.4
 
 %preun
-unlink /opt/%{_db_prefix}/libcurl-gnutls.so.4
 
 %postun
 
