@@ -38,7 +38,6 @@ AppPublisher           ={#sPublisherName}
 AppPublisherURL        ={#sPublisherURL}
 AppSupportURL          ={#sSupportURL}
 AppCopyright           ={#sCopyright}
-AppMutex               =TEAMLAB
 AllowNoIcons           =yes
 #if str(ARCH) == "x64"
 ArchitecturesAllowed   =x64
