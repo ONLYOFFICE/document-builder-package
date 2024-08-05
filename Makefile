@@ -54,29 +54,22 @@ ifeq ($(UNAME_S),Linux)
 	PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 endif
 
-RPM_BUILD_DIR := $(PWD)/rpm/builddir
-TAR_BUILD_DIR := $(PWD)/tar
+BUILD_DIR = build
 
+RPM_BUILD_DIR := rpm/build
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
-TAR_PACKAGE_DIR = $(TAR_BUILD_DIR)
 
 RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(RPM_RELEASE_SUFFIX).$(RPM_ARCH).rpm
 DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)$(DEB_RELEASE_SUFFIX)_$(DEB_ARCH).deb
-TAR := $(TAR_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(TAR_RELEASE_SUFFIX)-$(TAR_ARCH).tar.gz
+TAR := tar/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(TAR_RELEASE_SUFFIX)-$(TAR_ARCH).tar.xz
 
-DOCUMENTBUILDER := common/documentbuilder/home
-DOCUMENTBUILDER_BIN := common/documentbuilder/bin
-
-LINUX_DEPS += common/documentbuilder/bin/$(PACKAGE_NAME)
+LINUX_DEPS += $(BUILD_DIR)/usr/bin/$(PACKAGE_NAME)
 
 DEB_DEPS += deb/build/debian/source/format
 DEB_DEPS += deb/build/debian/changelog
 DEB_DEPS += deb/build/debian/compat
-DEB_DEPS += deb/build/debian/config
 DEB_DEPS += deb/build/debian/control
 DEB_DEPS += deb/build/debian/copyright
-DEB_DEPS += deb/build/debian/postinst
-DEB_DEPS += deb/build/debian/postrm
 DEB_DEPS += deb/build/debian/rules
 DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).install
 DEB_DEPS += deb/build/debian/$(PACKAGE_NAME).links
@@ -115,32 +108,30 @@ exe: $(EXE)
 
 zip: $(ZIP)
 
-clean:
-	$(RM) \
-		$(LINUX_DEPS) \
-		$(DOCUMENTBUILDER) \
-		deb/build \
-		deb/*.buildinfo \
-		deb/*.changes \
-		deb/*.ddeb \
-		deb/*.deb \
-		$(RPM_BUILD_DIR) \
-		$(TAR_BUILD_DIR) \
-		$(PRODUCT_NAME_LOW)
+clean :
+	rm -rf \
+		$(BUILD_DIR) \
+		deb*/build \
+		deb*/*.buildinfo \
+		deb*/*.changes \
+		deb*/*.ddeb \
+		deb*/*.deb \
+		rpm*/build \
+		rpm*/$(PACKAGE_NAME).spec \
+		tar
 
-$(PRODUCT_NAME_LOW):
-	$(MKDIR) $(DOCUMENTBUILDER)
-	$(CP) $(DOCUMENTBUILDER) $(SRC)
+$(BUILD_DIR) : $(LINUX_DEPS)
+	$(MKDIR) $@/opt/$(DB_PREFIX)
+	$(CP) $@/opt/$(DB_PREFIX) $(SRC)
 
-# 	echo "Done" > $@
-
-%/bin/$(PACKAGE_NAME) : %/bin/documentbuilder.sh.m4
+$(BUILD_DIR)/usr/bin/$(PACKAGE_NAME) : common/documentbuilder.sh.m4
+	mkdir -p $(@D)
 	m4 $(M4_PARAMS)	$< > $@
 	chmod +x $@
 
-$(RPM): $(RPM_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
+$(RPM): $(BUILD_DIR) $(RPM_DEPS)
 	$(CD) rpm && rpmbuild -bb \
-	--define '_topdir $(RPM_BUILD_DIR)' \
+	--define '_topdir $(PWD)/$(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
 	--define '_product_version $(PRODUCT_VERSION)' \
 	--define '_build_number $(BUILD_NUMBER)$(RPM_RELEASE_SUFFIX)' \
@@ -161,13 +152,13 @@ deb/build/debian/% : deb/template/%.m4
 deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
 	mkdir -pv $(@D) && m4 $(M4_PARAMS) $< > $@
 
-$(DEB): $(DEB_DEPS) $(LINUX_DEPS) $(PRODUCT_NAME_LOW)
+$(DEB): $(BUILD_DIR) $(DEB_DEPS)
 	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
-$(TAR): $(PRODUCT_NAME_LOW)
-	$(MKDIR) $(dir $@) $(TAR_BUILD_DIR)/documentbuilder
-	$(CP) $(TAR_BUILD_DIR)/documentbuilder $(DOCUMENTBUILDER)/*
-	tar -czf $@ --owner=root --group=root -C $(TAR_BUILD_DIR) documentbuilder
+$(TAR): $(BUILD_DIR)
+	mkdir -p $(@D)
+	tar --owner=0 --group=0 -C $(BUILD_DIR) -cJf $@ \
+		$(patsubst $(BUILD_DIR)/%,%,$(wildcard $(BUILD_DIR)/*))
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
