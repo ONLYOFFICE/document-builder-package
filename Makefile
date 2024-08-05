@@ -54,6 +54,8 @@ ifeq ($(UNAME_S),Linux)
 	PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 endif
 
+BUILD_DIR = build
+
 RPM_BUILD_DIR := rpm/build
 RPM_PACKAGE_DIR := $(RPM_BUILD_DIR)/RPMS/$(RPM_ARCH)
 
@@ -61,7 +63,7 @@ RPM := $(RPM_PACKAGE_DIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(RPM_RELEASE_SUFFIX
 DEB := deb/$(PACKAGE_NAME)_$(PACKAGE_VERSION)$(DEB_RELEASE_SUFFIX)_$(DEB_ARCH).deb
 TAR := tar/$(PACKAGE_NAME)-$(PACKAGE_VERSION)$(TAR_RELEASE_SUFFIX)-$(TAR_ARCH).tar.xz
 
-LINUX_DEPS += build/usr/bin/$(PACKAGE_NAME)
+LINUX_DEPS += $(BUILD_DIR)/usr/bin/$(PACKAGE_NAME)
 
 DEB_DEPS += deb/build/debian/source/format
 DEB_DEPS += deb/build/debian/changelog
@@ -108,7 +110,7 @@ zip: $(ZIP)
 
 clean :
 	rm -rf \
-		build \
+		$(BUILD_DIR) \
 		deb*/build \
 		deb*/*.buildinfo \
 		deb*/*.changes \
@@ -118,16 +120,16 @@ clean :
 		rpm*/$(PACKAGE_NAME).spec \
 		tar
 
-build : $(LINUX_DEPS)
+$(BUILD_DIR) : $(LINUX_DEPS)
 	$(MKDIR) $@/opt/$(DB_PREFIX)
 	$(CP) $@/opt/$(DB_PREFIX) $(SRC)
 
-build/usr/bin/$(PACKAGE_NAME) : common/documentbuilder.sh.m4
+$(BUILD_DIR)/usr/bin/$(PACKAGE_NAME) : common/documentbuilder.sh.m4
 	mkdir -p $(@D)
 	m4 $(M4_PARAMS)	$< > $@
 	chmod +x $@
 
-$(RPM): build $(RPM_DEPS)
+$(RPM): $(BUILD_DIR) $(RPM_DEPS)
 	$(CD) rpm && rpmbuild -bb \
 	--define '_topdir $(PWD)/$(RPM_BUILD_DIR)' \
 	--define '_package_name $(PACKAGE_NAME)' \
@@ -150,13 +152,13 @@ deb/build/debian/% : deb/template/%.m4
 deb/build/debian/$(PACKAGE_NAME).% : deb/template/package.%.m4
 	mkdir -pv $(@D) && m4 $(M4_PARAMS) $< > $@
 
-$(DEB): build $(DEB_DEPS)
+$(DEB): $(BUILD_DIR) $(DEB_DEPS)
 	cd deb/build && dpkg-buildpackage -b -uc -us -a$(DEB_ARCH)
 
-$(TAR): build
+$(TAR): $(BUILD_DIR)
 	mkdir -p $(@D)
-	tar --owner=0 --group=0 -C build -cJf $@ \
-		$(patsubst build/%,%,$(wildcard build/*))
+	tar --owner=0 --group=0 -C $(BUILD_DIR) -cJf $@ \
+		$(patsubst $(BUILD_DIR)/%,%,$(wildcard $(BUILD_DIR)/*))
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
