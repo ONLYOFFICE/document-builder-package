@@ -3,9 +3,7 @@ param (
     [string]$Version = "1.0.0",
     [string]$Build = "1",
     [string]$Branding,
-    [switch]$Sign = $false,
-    [string]$CertName = "Ascensio System SIA",
-    [string]$TimestampServer = "http://timestamp.digicert.com"
+    [switch]$Sign = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,8 +34,10 @@ if ( $Branding ) {
     $InnoArgs += "/DBRANDING_DIR=$Branding"
 }
 if ( $Sign ) {
-    $InnoArgs += "/DSIGN"
-    $InnoArgs += "/Sbyparam=signtool.exe sign /a /v /n `$q$CertName`$q /t $TimestampServer `$f"
+    $CertFile = $env:WINDOWS_CERTIFICATE
+    $CertPass = $env:WINDOWS_CERTIFICATE_PASSWORD
+    $TimestampServer = "http://timestamp.digicert.com"
+    $InnoArgs += "/DSIGN", "/Sbyparam=signtool sign /f `$q$CertFile`$q /p `$q$CertPass`$q /t $TimestampServer `$f"
 }
 
 # Build
