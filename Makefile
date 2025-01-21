@@ -39,10 +39,10 @@ ifneq ($(filter %86,$(UNAME_M)),)
 	TAR_ARCH := i386
 	ARCHITECTURE := 32
 endif
-ifneq ($(filter aarch%,$(UNAME_M)),)
+ifneq ($(filter $(UNAME_M),aarch64 arm64),)
 	RPM_ARCH := aarch64
 	DEB_ARCH := arm64
-	TAR_ARCH := aarch64
+	TAR_ARCH := $(UNAME_M)
 	ARCHITECTURE := arm64
 endif
 
@@ -132,9 +132,9 @@ $(BUILD_DIR) :
 	cp -rf $(SRC) $@
 ifeq ($(ENABLE_SIGNING),1)
 	codesign --force --verbose --verify --options=runtime \
-		--sign $(CODESIGNING_IDENTITY) $@/docbuilder $@/x2t
+		--sign "$(CODESIGNING_IDENTITY)" $@/docbuilder $@/x2t
 	codesign --force --verbose --verify \
-		--sign $(CODESIGNING_IDENTITY) $@/*.dylib
+		--sign "$(CODESIGNING_IDENTITY)" $@/*.dylib
 endif
 endif
 
