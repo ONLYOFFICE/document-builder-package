@@ -1,46 +1,62 @@
-param (
+﻿param (
+    [System.Version]$Version = "0.0.0.0",
     [string]$Arch = "x64",
-    [string]$Version = "1.0.0",
-    [string]$Build = "1",
+    [string]$CompanyName = "ONLYOFFICE",
+    [string]$ProductName = "DocumentBuilder",
+    [string]$BuildDir = "build",
     [string]$Branding,
-    [switch]$Sign = $false,
-    [string]$CertName = "Ascensio System SIA",
-    [string]$TimestampServer = "http://timestamp.digicert.com"
+    [switch]$Sign
 )
 
 $ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot
 
-# Check app directory
-if ( -Not (Test-Path -Path "build\app") ) {
-    Write-Error "Path build\app does not exist"
+if ( -Not (Test-Path -Path "$BuildDir") ) {
+    Write-Error "Path `"$BuildDir`" does not exist"
 }
 
-# ISCC path
-if ( $env:INNOPATH ) {
+Write-Host @"
+Version       $Version
+Arch          $Arch
+CompanyName   $CompanyName
+ProductName   $ProductName
+BuildDir      $BuildDir
+Branding      $Branding
+Sign          $Sign
+"@
+
+####
+
+Write-Host "`n[ Get Inno Setup path ]"
+
+if ($env:INNOPATH) {
     $InnoPath = $env:INNOPATH
 }
-else
-{
-    $InnoPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1")."Inno Setup: App Path"
+else {
+    $RegPath = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1"
+    $InnoPath = (Get-ItemProperty $RegPath)."Inno Setup: App Path"
 }
+$InnoPath
 $env:Path = "$InnoPath;$env:Path"
 
-# ISCC args
-$InnoArgs = "/DAPP_DIR=..\build\app",
-            "/DOUTPUT_DIR=..\build",
-            "/DARCH=$Arch",
-            "/DVERSION=$Version.$Build"
-if ( $Branding ) {
+####
+
+Write-Host "`n[ Build Inno Setup project ]"
+
+$InnoArgs = "/DARCH=$Arch",
+            "/DVERSION=$Version"
+if ($Branding) {
     $InnoArgs += "/DBRANDING_DIR=$Branding"
 }
-if ( $Sign ) {
+if ($Sign) {
+    $CertName = $(if ($env:WINDOWS_CERTIFICATE_NAME) { `
+        $env:WINDOWS_CERTIFICATE_NAME } else { "Ascensio System SIA" })
+    $TimestampServer = "http://timestamp.digicert.com"
     $InnoArgs += "/DSIGN"
-    $InnoArgs += "/Sbyparam=signtool.exe sign /a /v /n `$q$CertName`$q /t $TimestampServer `$f"
+    $InnoArgs += "/Sbyparam=signtool sign /a /v /n `$q$CertName`$q /t $TimestampServer `$f"
 }
 
-# Build
-Write-Host "ISCC $InnoArgs exe\builder.iss" -ForegroundColor Yellow
+Write-Host "ISCC $InnoArgs exe\builder.iss"
 & ISCC $InnoArgs exe\builder.iss
-Exit $LastExitCode
+if (-not $?) { throw "Exited with code $LastExitCode" }
