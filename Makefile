@@ -39,20 +39,22 @@ ifneq ($(filter %86,$(UNAME_M)),)
 	TAR_ARCH := i386
 	ARCHITECTURE := 32
 endif
-ifneq ($(filter aarch%,$(UNAME_M)),)
+ifneq ($(filter $(UNAME_M),aarch64 arm64),)
 	RPM_ARCH := aarch64
 	DEB_ARCH := arm64
-	TAR_ARCH := aarch64
+	TAR_ARCH := $(UNAME_M)
 	ARCHITECTURE := arm64
 endif
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 	PLATFORM := linux
-	SRC ?= ../build_tools/out/linux_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
-	DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
-	PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
+else ifeq ($(UNAME_S),Darwin)
+	PLATFORM := mac
 endif
+SRC ?= ../build_tools/out/$(PLATFORM)_$(ARCHITECTURE)/$(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)/*
+DB_PREFIX := $(COMPANY_NAME_LOW)/$(PRODUCT_NAME_LOW)
+PACKAGE_VERSION := $(PRODUCT_VERSION)-$(BUILD_NUMBER)
 
 BUILD_DIR = build
 
@@ -120,9 +122,21 @@ clean :
 		rpm*/$(PACKAGE_NAME).spec \
 		tar
 
+ifeq ($(UNAME_S),Linux)
 $(BUILD_DIR) : $(LINUX_DEPS)
 	$(MKDIR) $@/opt/$(DB_PREFIX)
 	$(CP) $@/opt/$(DB_PREFIX) $(SRC)
+else ifeq ($(UNAME_S),Darwin)
+$(BUILD_DIR) :
+	mkdir -p $@
+	cp -rf $(SRC) $@
+ifeq ($(ENABLE_SIGNING),1)
+	codesign --force --verbose --verify --options=runtime \
+		--sign "$(CODESIGNING_IDENTITY)" $@/docbuilder $@/x2t
+	codesign --force --verbose --verify \
+		--sign "$(CODESIGNING_IDENTITY)" $@/*.dylib
+endif
+endif
 
 $(BUILD_DIR)/usr/bin/$(PACKAGE_NAME) : common/documentbuilder.sh.m4
 	mkdir -p $(@D)
@@ -157,8 +171,13 @@ $(DEB): $(BUILD_DIR) $(DEB_DEPS)
 
 $(TAR): $(BUILD_DIR)
 	mkdir -p $(@D)
+ifeq ($(UNAME_S),Linux)
 	tar --owner=0 --group=0 -C $(BUILD_DIR) -cJf $@ \
 		$(patsubst $(BUILD_DIR)/%,%,$(wildcard $(BUILD_DIR)/*))
+else ifeq ($(UNAME_S),Darwin)
+	tar --uid=0 --gid=0 -C $(BUILD_DIR) -cJf $@ \
+		$(patsubst $(BUILD_DIR)/%,%,$(wildcard $(BUILD_DIR)/*))
+endif
 
 % : %.m4
 	m4 $(M4_PARAMS)	$< > $@
@@ -167,9 +186,11 @@ rpm/$(PACKAGE_NAME).spec : rpm/package.spec
 	cp -f $< $@
 
 ifeq ($(PLATFORM),linux)
+PACKAGES += tar
 PACKAGES += deb
 PACKAGES += rpm
-# PACKAGES += tar
+else ifeq ($(PLATFORM),mac)
+PACKAGES += tar
 endif
 
 packages: $(PACKAGES)

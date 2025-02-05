@@ -14,7 +14,7 @@
 #endif
 #define NAME_EXE_OUT 'docbuilder.exe'
 #ifndef APP_DIR
-#define APP_DIR '..\build\app'
+#define APP_DIR '..\build'
 #endif
 #ifndef OUTPUT_DIR
 #define OUTPUT_DIR '.'
