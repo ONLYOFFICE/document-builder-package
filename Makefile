@@ -129,12 +129,12 @@ $(BUILD_DIR) : $(LINUX_DEPS)
 else ifeq ($(UNAME_S),Darwin)
 $(BUILD_DIR) :
 	mkdir -p $@
-	cp -rf $(SRC) $@
+	cp -rf -v $(SRC) $@
 ifeq ($(ENABLE_SIGNING),1)
 	codesign --force --verbose --verify --options=runtime \
 		--sign "$(CODESIGNING_IDENTITY)" $@/docbuilder $@/x2t
 	codesign --force --verbose --verify \
-		--sign "$(CODESIGNING_IDENTITY)" $@/*.dylib
+		--sign "$(CODESIGNING_IDENTITY)" $@/*.framework
 endif
 endif
 
