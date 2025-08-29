@@ -134,7 +134,7 @@ ifeq ($(ENABLE_SIGNING),1)
 	codesign --force --verbose --verify --options=runtime \
 		--sign "$(CODESIGNING_IDENTITY)" $@/docbuilder $@/x2t
 	codesign --force --verbose --verify \
-		--sign "$(CODESIGNING_IDENTITY)" $@/*.dylib
+		--sign "$(CODESIGNING_IDENTITY)" $@/*.framework
 endif
 endif
 
