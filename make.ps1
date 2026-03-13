@@ -55,21 +55,16 @@ Copy-Item -Force -Recurse `
 Write-Host "`n[ Sign files ]"
 
 if ($Sign) {
-    Set-Location "$BuildDir"
+    Push-Location "$BuildDir"
 
-    $CertName = $(if ($env:WINDOWS_CERTIFICATE_NAME) { `
-        $env:WINDOWS_CERTIFICATE_NAME } else { "Ascensio System SIA" })
-    $TimestampServer = "http://timestamp.digicert.com"
-    $SignFiles = Get-ChildItem *.exe, *.dll | Resolve-Path -Relative
-    $SignFiles
+    $SignFiles = Get-ChildItem *.exe, *.dll -Recurse
 
-    Write-Host "signtool sign /a /n $CertName /t $TimestampServer /v ..."
-    & signtool sign /a /n $CertName /t $TimestampServer /v $SignFiles
-    if (-not $?) { throw "Exited with code $LastExitCode" }
+    $SignFiles | ForEach-Object {
+        & "$env:WORKSPACE\documents-pipeline\scripts\Sign.ps1" -File $_
+        if (-not $?) { throw "Exited with code $LastExitCode" }
+    }
 
-    Write-Host "signtool verify /q /pa /all ..."
-    & signtool verify /q /pa /all $SignFiles | Out-Null
-    if (-not $?) { throw "Exited with code $LastExitCode" }
+    $SignFiles | % { Get-AuthenticodeSignature $_ }
 
-    Set-Location $PSScriptRoot
+    Pop-Location
 }
